@@ -6,7 +6,7 @@
 
 | 路径 | 作用 |
 |------|------|
-| `config/cameras.yaml` | 相机列表、分辨率、`source`（`synthetic` / `rtsp`）、标定目录 |
+| `config/cameras.yaml` | 相机列表、分辨率、`source`（`synthetic` / `webcam` / `rtsp`）、标定目录 |
 | `config/algorithms.yaml` | 插件开关、模块路径、算法私有参数 |
 | `config/pipelines.yaml` | 两条 DAG：人车链、障碍物链 |
 | `config/system.yaml` | GPU、300ms 相关阈值、健康端口、预览 |

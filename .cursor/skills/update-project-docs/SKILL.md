@@ -18,5 +18,6 @@ description: >-
 3. 启动、安装、Docker、环境变量变化 → 更新 `docs/ops/getting-started.md` 或 `packaging.md` 或 `configuration.md`，并核对根 `README.md` 链接。
 4. 检测器/量测器接口或事件 JSON 变化 → `docs/algorithms/plugin-guide.md` + `docs/architecture/system-design.md` 第 6/8 节。
 5. 用户确认的新决策 → 追加 `docs/ai/memory.md`（日期、决策、范围、例外）。
+6. 新增或搬迁 `docs/` 下的 md → 在 `docs/README.md` 的「按意图查找」和对应目录表各加一行。
 
-不要新建平行的「另一套架构说明」。活人文档与 AI 文档共用上述路径。
+不要新建平行的「另一套架构说明」。活人文档与 AI 文档共用上述路径。查文档从 `docs/README.md` 按需打开，不要通读整棵 `docs/`。

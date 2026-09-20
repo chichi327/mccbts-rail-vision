@@ -42,14 +42,22 @@ bash scripts/start.sh
 python main.py --config-dir config
 ```
 
-默认 `config/cameras.yaml` 使用 `source: synthetic`，不连真实相机也会出帧、跑两条流水线、尝试向后端 POST（失败则进本地重试队列，见日志）。
+默认 `config/cameras.yaml` 可使用 `source: synthetic`。你若已改成 `webcam` / `rtsp`，启动后浏览器打开 `http://127.0.0.1:8081/preview` 看持续画面（见 [verify-with-camera.md](verify-with-camera.md)）。
 
-## 接海康相机
+`.env` 里后端若仍是占位 `http://backend/...`，则跳过 HTTP 上报，不刷超时。
+
+## 接真实摄像头（验证通路）
+
+步骤见 [verify-with-camera.md](verify-with-camera.md)（本机 `webcam` 或海康 `rtsp`）。
+
+业务上后续要拍板的事项见 [follow-up-checklist.md](follow-up-checklist.md)。
+
+## 接海康相机（现场）
 
 1. 编辑 `config/cameras.yaml`：`source: rtsp`，填写 `rtsp_main` / `rtsp_sub`
 2. 把供应商文件放到 `config/calib/<camera_id>/`（清单见 [configuration.md](configuration.md)）
 3. `.env` 里配置 `BACKEND_EVENTS_URL`、`BACKEND_HEARTBEAT_URL`、`BACKEND_TOKEN`
-4. 再执行 `./scripts/start.sh`
+4. 再执行 `bash scripts/start.sh`
 
 ## 单路调试
 

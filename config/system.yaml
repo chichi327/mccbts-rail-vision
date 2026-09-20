@@ -17,5 +17,9 @@ system:
     post_timeout_ms: 100
     retry_queue_size: 1000
   preview:
-    enabled: false
+    enabled: true
+    host: 127.0.0.1
+    port: 8081
+    max_width: 960
+    jpeg_quality: 60
     mediamtx_addr: 127.0.0.1:8889

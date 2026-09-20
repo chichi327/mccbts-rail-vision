@@ -219,6 +219,7 @@ __marimo__/
 
 # 本项目
 data/retry_queue/
+data/debug/
 logs/
 dist/
 *.pt

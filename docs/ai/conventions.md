@@ -35,6 +35,7 @@
 
 ## 文档
 
+- 查找入口以 `docs/README.md` 为准；新增 `docs/**/*.md` 必须写入该索引
 - 目录职责以 `docs/ai/module-map.yaml` 为准
 - 架构对错以 `docs/architecture/system-design.md` 为准
 - 启动打包以 `docs/ops/` 为准

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-本仓库给 Cursor / 其他编码 Agent 的入口。人请从 [README.md](README.md) 和 [docs/ops/getting-started.md](docs/ops/getting-started.md) 开始。
+本仓库给 Cursor / 其他编码 Agent 的入口。人请从 [README.md](README.md) 和 [docs/ops/getting-started.md](docs/ops/getting-started.md) 开始。按需查文档用 [docs/README.md](docs/README.md)，不要通读整棵 `docs/`。
 
 ## 必读
 
@@ -18,5 +18,6 @@
 3. 操作步骤变化则改 `docs/ops/`
 4. 用户新拍板则追加 `docs/ai/memory.md`
 5. 模块边界变化则改 `docs/architecture/system-design.md` 对应节，不要让文档撒谎
+6. 新增或搬迁 `docs/**/*.md` 必须写入 [docs/README.md](docs/README.md) 索引
 
-详细流程见 [docs/ai/README.md](docs/ai/README.md) 与 `.cursor/skills/update-project-docs/SKILL.md`。
+详细流程见 [docs/README.md](docs/README.md)、[docs/ai/README.md](docs/ai/README.md) 与 `.cursor/skills/update-project-docs/SKILL.md`。

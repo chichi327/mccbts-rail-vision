@@ -5,7 +5,7 @@ alwaysApply: true
 
 # 本仓库
 
-铁路视觉算法服务。先读 `AGENTS.md`。架构以 `docs/architecture/system-design.md` 为准；目录职责以 `docs/ai/module-map.yaml` 为准；操作以 `docs/ops/` 为准。
+铁路视觉算法服务。先读 `AGENTS.md`。按需查文档用 `docs/README.md`。架构以 `docs/architecture/system-design.md` 为准；目录职责以 `docs/ai/module-map.yaml` 为准；操作以 `docs/ops/` 为准。
 
 ## 记忆
 
@@ -19,5 +19,6 @@ alwaysApply: true
 - 启动/安装/打包步骤变化 → 改 `docs/ops/` 与根 `README.md` 链接
 - 插件接口或事件字段变化 → 改 `docs/algorithms/plugin-guide.md` 与 system-design 对应节
 - 配置项增减 → 改 `docs/ops/configuration.md` 和 `.env.example`
+- 新增或搬迁 `docs/**/*.md` → 写入 `docs/README.md` 索引
 
 禁止只改代码让 `architecture-map.md` 说谎。

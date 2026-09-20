@@ -1,10 +1,11 @@
 cameras:
   - id: cam01
-    name: 示例相机（合成帧）
-    source: synthetic
-    rtsp_main: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
-    rtsp_sub: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
-    width: 1920
-    height: 1080
-    target_fps: 10
+    name: 本机
+    source: webcam
+    # rtsp_main: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
+    # rtsp_sub: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
+    width: 1280
+    height: 720
+    target_fps: 15
     calib_dir: config/calib/cam01
+    device_index: 0

@@ -11,6 +11,8 @@ from core.base.types import Detection
 from core.calib.store import CalibStore
 from core.event.eventer import Eventer
 from core.ingest.mailbox import LatestFrameMailbox
+from core.ingest.packet import FramePacket
+from core.ingest.shm_frame import SharedFrameBuffer
 from core.runtime.loader import load_pipeline_steps
 from core.track.iou_tracker import IoUTracker
 
@@ -26,13 +28,15 @@ def run_pipeline(
     step_names: list[str],
     algorithms: dict[str, Any],
     cameras: list[dict[str, Any]],
-    mailboxes: dict[str, LatestFrameMailbox],
+    frame_buf_args: dict[str, dict[str, Any]],
+    det_boxes: dict[str, LatestFrameMailbox],
     event_queue: Queue,
     system: dict[str, Any],
     stop_event,
 ) -> None:
     steps = load_pipeline_steps(step_names, algorithms)
     store = CalibStore()
+    bufs = {cam_id: SharedFrameBuffer(**kwargs) for cam_id, kwargs in frame_buf_args.items()}
     for cam in cameras:
         store.load_camera(cam["id"], cam["calib_dir"])
     trackers = {cam["id"]: IoUTracker(prefix=f"{cam['id']}-{pipeline_id}") for cam in cameras}
@@ -42,17 +46,28 @@ def run_pipeline(
     )
     drop_age = int(system.get("drop_if_frame_age_ms", 200))
     dropped = 0
+    last_seq = {cam["id"]: -1 for cam in cameras}
     log.info("pipeline start id=%s steps=%s", pipeline_id, step_names)
     try:
         while not stop_event.is_set():
+            progressed = False
             for cam in cameras:
-                packet = mailboxes[cam["id"]].take(timeout=0.02)
-                if packet is None:
+                cam_id = cam["id"]
+                frame, ts_ms, seq = bufs[cam_id].read_copy()
+                if frame is None or seq == last_seq[cam_id]:
                     continue
-                age = now_ms() - packet.capture_ts_ms
+                last_seq[cam_id] = seq
+                progressed = True
+                age = now_ms() - ts_ms
                 if age > drop_age:
                     dropped += 1
                     continue
+                packet = FramePacket(
+                    camera_id=cam_id,
+                    capture_ts_ms=ts_ms,
+                    frame_bgr=frame,
+                    undistorted=True,
+                )
                 detections: list[Detection] = []
                 calib = store.view(packet.camera_id)
                 for step in steps:
@@ -65,13 +80,25 @@ def run_pipeline(
                         detections = step.estimate(
                             packet.frame_bgr, packet.camera_id, detections, calib
                         )
+                det_boxes[cam_id].publish(detections)
                 events = eventer.feed(packet.camera_id, packet.capture_ts_ms, detections)
                 for ev in events:
+                    log.info(
+                        "event camera=%s type=%s dist=%s height=%s",
+                        ev.camera_id,
+                        ev.event_type,
+                        ev.object.distance_to_track_m,
+                        ev.object.height_m,
+                    )
                     try:
                         event_queue.put_nowait(ev)
                     except Exception:
                         log.warning("event queue full, drop event %s", ev.event_type)
+            if not progressed:
+                time.sleep(0.002)
     finally:
+        for buf in bufs.values():
+            buf.close(unlink=False)
         for step in steps:
             step.release()
         log.info("pipeline stop id=%s dropped_stale=%s", pipeline_id, dropped)

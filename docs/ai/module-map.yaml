@@ -12,7 +12,7 @@ modules:
   - path: core/ingest
     role: 接入
     owner: 框架团队
-    purpose: RTSP/合成源拉流、硬解或 OpenCV 低缓冲、去畸变、最新帧邮箱
+    purpose: RTSP/合成/webcam 拉流、去畸变、共享内存最新帧
     forbidden: 跑模型、读业务阈值
 
   - path: core/calib
@@ -54,7 +54,7 @@ modules:
   - path: core/preview
     role: 预览
     owner: 框架团队
-    purpose: 内网叠框，不计入 300ms 链路
+    purpose: 内网叠框预览（MJPEG /preview），不计入 300ms 链路
     forbidden: 作为算法输入源
 
   - path: algorithms/person_vehicle_detect
@@ -99,11 +99,23 @@ modules:
     purpose: 启动、打包、文档同步、单路调试
     forbidden: 作为生产常驻进程
 
+  - path: docs
+    role: 文档
+    owner: 全员
+    purpose: 文档索引 README.md；人和 AI 按意图查找
+    forbidden: 新增 docs 下 md 却不写入 README 索引
+
   - path: docs/architecture
     role: 文档
     owner: 全员
     purpose: 拍板后的系统架构
     forbidden: 与代码长期不一致还不改 memory/map
+
+  - path: docs/algorithms
+    role: 文档
+    owner: 算法团队 / 框架
+    purpose: 插件接口与接入步骤
+    forbidden: 与 core.base 或 system-design 字段长期不一致
 
   - path: docs/ai
     role: 文档

@@ -76,8 +76,62 @@ class OpenCVRTSPSource(FrameSource):
         self.cap.release()
 
 
+class OpenCVDeviceSource(FrameSource):
+    """本机 USB / 内置摄像头，仅用于架构通路验证。"""
+
+    def __init__(self, camera_id: str, device_index: int, width: int, height: int, fps: int = 10):
+        import cv2
+
+        self.camera_id = camera_id
+        self.width = width
+        self.height = height
+        self.interval = 1.0 / max(fps, 1)
+        self._last = 0.0
+        self.cap = cv2.VideoCapture(device_index)
+        if not self.cap.isOpened():
+            raise RuntimeError(
+                f"打不开摄像头 device_index={device_index}。"
+                "macOS 请在系统设置 → 隐私与安全 → 相机 允许终端/IDE。"
+            )
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
+    def read(self) -> FramePacket | None:
+        import cv2
+
+        if not self.cap.grab():
+            return None
+        now = time()
+        if now - self._last < self.interval:
+            return None
+        ok, frame = self.cap.retrieve()
+        if not ok or frame is None:
+            return None
+        self._last = now
+        if frame.shape[1] != self.width or frame.shape[0] != self.height:
+            frame = cv2.resize(frame, (self.width, self.height))
+        return FramePacket(
+            camera_id=self.camera_id,
+            capture_ts_ms=int(time() * 1000),
+            frame_bgr=frame,
+            undistorted=False,
+        )
+
+    def release(self) -> None:
+        self.cap.release()
+
+
 def open_source(cam: dict) -> FrameSource:
     source = cam.get("source", "synthetic")
     if source == "rtsp":
         return OpenCVRTSPSource(cam["id"], cam["rtsp_main"], cam["width"], cam["height"])
+    if source == "webcam":
+        return OpenCVDeviceSource(
+            cam["id"],
+            int(cam.get("device_index", 0)),
+            cam["width"],
+            cam["height"],
+            int(cam.get("target_fps", 10)),
+        )
     return SyntheticSource(cam["id"], cam["width"], cam["height"], int(cam.get("target_fps", 10)))

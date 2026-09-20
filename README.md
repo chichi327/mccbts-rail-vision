@@ -4,9 +4,13 @@
 
 ## 人从这里开始
 
+完整文档目录：[docs/README.md](docs/README.md)。
+
 | 我想… | 打开 |
 |--------|------|
 | 安装、启动、单路调试 | [docs/ops/getting-started.md](docs/ops/getting-started.md) |
+| 后续逐项确认清单 | [docs/ops/follow-up-checklist.md](docs/ops/follow-up-checklist.md) |
+| 手头摄像头验证通路 | [docs/ops/verify-with-camera.md](docs/ops/verify-with-camera.md) |
 | Docker 打包、现场部署 | [docs/ops/packaging.md](docs/ops/packaging.md) |
 | 相机 / 标定 / `.env` | [docs/ops/configuration.md](docs/ops/configuration.md) |
 | 整体架构（拍板文档） | [docs/architecture/system-design.md](docs/architecture/system-design.md) |
@@ -23,11 +27,11 @@ python scripts/gen_sample_calib.py
 bash scripts/start.sh
 ```
 
-健康检查：`http://127.0.0.1:8080/health`。默认相机是合成帧，不连海康也能把两条流水线跑起来。
+健康检查：`http://127.0.0.1:8080/health`。摄像头配置下预览：`http://127.0.0.1:8081/preview`。
 
 ## AI 从这里开始
 
-读 [AGENTS.md](AGENTS.md)。改代码后按 `.cursor/rules` 同步 `docs/ai/module-map.yaml` 并运行 `python scripts/sync_architecture_map.py`。已拍板决策写在 [docs/ai/memory.md](docs/ai/memory.md)。
+读 [AGENTS.md](AGENTS.md)。按需打开 [docs/README.md](docs/README.md)。改代码后按 `.cursor/rules` 同步 `docs/ai/module-map.yaml` 并运行 `python scripts/sync_architecture_map.py`。已拍板决策写在 [docs/ai/memory.md](docs/ai/memory.md)。
 
 ## 运行时结构（摘要）
 

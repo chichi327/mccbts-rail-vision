@@ -4,6 +4,7 @@
 
 | 读者 | 先看 |
 |------|------|
+| 人/AI · 文档目录 | [docs/README.md](../README.md) |
 | 人 · 启动/打包 | [docs/ops/getting-started.md](../ops/getting-started.md)、[docs/ops/packaging.md](../ops/packaging.md) |
 | 人 · 配置/标定 | [docs/ops/configuration.md](../ops/configuration.md) |
 | 人/AI · 目录实况 | [docs/ai/architecture-map.md](../ai/architecture-map.md) |

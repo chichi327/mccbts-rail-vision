@@ -11,6 +11,7 @@ from core.health.loop import run_health
 from core.health.server import serve_health
 from core.ingest.loop import run_ingest
 from core.ingest.mailbox import LatestFrameMailbox
+from core.ingest.shm_frame import SharedFrameBuffer
 from core.logger import setup_logging
 from core.runtime.config import load_app_config
 from core.runtime.pipeline import run_pipeline
@@ -39,17 +40,26 @@ def main() -> None:
     signal.signal(signal.SIGINT, _stop)
     signal.signal(signal.SIGTERM, _stop)
 
-    mailboxes = {cam["id"]: LatestFrameMailbox(ctx) for cam in cfg.cameras}
+    frame_bufs = {
+        cam["id"]: SharedFrameBuffer(cam["width"], cam["height"], ctx=ctx) for cam in cfg.cameras
+    }
+    frame_buf_args = {cam_id: buf.attach_kwargs() for cam_id, buf in frame_bufs.items()}
+    det_boxes = {
+        pipe["id"]: {cam["id"]: LatestFrameMailbox(ctx) for cam in cfg.cameras} for pipe in cfg.pipelines
+    }
     event_queue = ctx.Queue(maxsize=256)
     procs: list[mp.Process] = []
 
+    ingest_threads: list[threading.Thread] = []
     for cam in cfg.cameras:
-        proc = ctx.Process(
+        thread = threading.Thread(
             name=f"ingest-{cam['id']}",
             target=run_ingest,
-            args=(cam, mailboxes[cam["id"]], cam["calib_dir"], stop),
+            args=(cam, frame_bufs[cam["id"]], cam["calib_dir"], stop),
+            daemon=True,
         )
-        procs.append(proc)
+        ingest_threads.append(thread)
+        thread.start()
     for pipe in cfg.pipelines:
         proc = ctx.Process(
             name=f"pipe-{pipe['id']}",
@@ -59,7 +69,8 @@ def main() -> None:
                 pipe["steps"],
                 cfg.algorithms,
                 cfg.cameras,
-                mailboxes,
+                frame_buf_args,
+                det_boxes[pipe["id"]],
                 event_queue,
                 cfg.system,
                 stop,
@@ -89,9 +100,22 @@ def main() -> None:
         daemon=True,
         name="health-http",
     ).start()
-    start_preview_thread(bool((cfg.system.get("preview") or {}).get("enabled")))
+    preview_cfg = cfg.system.get("preview") or {}
+    start_preview_thread(
+        bool(preview_cfg.get("enabled", True)),
+        str(preview_cfg.get("host", "127.0.0.1")),
+        int(preview_cfg.get("port", 8081)),
+        [c["id"] for c in cfg.cameras],
+        frame_bufs,
+        det_boxes,
+        stop,
+        int(preview_cfg.get("max_width", 960)),
+        int(preview_cfg.get("jpeg_quality", 60)),
+    )
 
-    log.info("started processes=%s", [p.name for p in procs])
+    log.info("started ingest_threads=%s processes=%s", [t.name for t in ingest_threads], [p.name for p in procs])
+    if preview_cfg.get("enabled", True):
+        log.info("open preview http://127.0.0.1:%s/preview", int(preview_cfg.get("port", 8081)))
     try:
         while not stop.is_set():
             dead = [p.name for p in procs if not p.is_alive()]
@@ -106,6 +130,8 @@ def main() -> None:
             proc.join(timeout=3)
             if proc.is_alive():
                 proc.terminate()
+        for buf in frame_bufs.values():
+            buf.close(unlink=True)
         log.info("shutdown complete")
 
 
