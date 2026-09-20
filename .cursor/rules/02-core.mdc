@@ -1,0 +1,14 @@
+---
+description: 修改 core/ 时的边界
+globs: core/**/*.py
+alwaysApply: false
+---
+
+# core/
+
+框架代码。可被所有算法 import，但算法不得反向依赖其他插件。
+
+- 几何与 npz 只放 `core/calib`，对外只暴露 `CalibView`
+- 接入层 `ingest` 负责时间戳、去畸变、LatestFrame 邮箱
+- 调度 `runtime` 从 YAML 加载插件，不要写死模型类
+- 改公共类型 `Detection` 时同步 plugin-guide 与上报 JSON

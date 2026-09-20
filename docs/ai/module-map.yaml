@@ -1,0 +1,124 @@
+# 架构信息源：路径 → 功能。增删目录时先改本文件，再运行
+#   python scripts/sync_architecture_map.py
+# 生成 docs/ai/architecture-map.md
+
+modules:
+  - path: core/base
+    role: 框架
+    owner: 框架团队
+    purpose: Detection、BaseDetector、BaseEstimator 统一接口
+    forbidden: 在插件里复制一份结果类型
+
+  - path: core/ingest
+    role: 接入
+    owner: 框架团队
+    purpose: RTSP/合成源拉流、硬解或 OpenCV 低缓冲、去畸变、最新帧邮箱
+    forbidden: 跑模型、读业务阈值
+
+  - path: core/calib
+    role: 标定
+    owner: 框架团队
+    purpose: 加载供应商文件，提供 CalibView 几何 API
+    forbidden: 算法目录自行解析 npz
+
+  - path: core/runtime
+    role: 调度
+    owner: 框架团队
+    purpose: 加载插件、DAG 流水线进程、过期丢帧
+    forbidden: 写死某个模型类名（必须走配置）
+
+  - path: core/track
+    role: 跟踪
+    owner: 框架团队
+    purpose: 为人车（及障碍物）补 object_id
+    forbidden: 修改检测类别
+
+  - path: core/event
+    role: 事件
+    owner: 框架团队
+    purpose: 预警/危险进出、障碍物出现消失
+    forbidden: 直接调模型
+
+  - path: core/report
+    role: 上报
+    owner: 框架团队
+    purpose: HTTP POST 后端、超时、本地重试队列
+    forbidden: 改变算法语义或字段名
+
+  - path: core/health
+    role: 健康
+    owner: 框架团队
+    purpose: 相机/流水线/标定心跳
+    forbidden: 把心跳混进事件通道
+
+  - path: core/preview
+    role: 预览
+    owner: 框架团队
+    purpose: 内网叠框，不计入 300ms 链路
+    forbidden: 作为算法输入源
+
+  - path: algorithms/person_vehicle_detect
+    role: 检测器插件
+    owner: 人员车辆团队
+    purpose: 已去畸变帧 → person/car/truck 框
+    forbidden: 计算距离；把人车标成 obstacle
+
+  - path: algorithms/track_distance
+    role: 量测器插件
+    owner: 测距团队
+    purpose: 用人车框 + CalibView 补 distance_to_track_m
+    forbidden: 自己再跑检测
+
+  - path: algorithms/obstacle_detect
+    role: 检测器插件
+    owner: 障碍物团队
+    purpose: 已去畸变帧 → obstacle 框
+    forbidden: 检出 person/car/truck
+
+  - path: algorithms/obstacle_height
+    role: 量测器插件
+    owner: 高度团队
+    purpose: 用障碍物框 + CalibView 补 height_m
+    forbidden: 自己再跑检测
+
+  - path: config
+    role: 配置
+    owner: 部署/框架
+    purpose: 相机、算法注册、流水线 DAG、系统阈值、标定文件
+    forbidden: 把密钥提交进 git（用 .env）
+
+  - path: services
+    role: 辅助进程
+    owner: 框架团队
+    purpose: 预览 HTTP、健康检查入口
+    forbidden: 塞进算法逻辑
+
+  - path: scripts
+    role: 工具
+    owner: 框架团队
+    purpose: 启动、打包、文档同步、单路调试
+    forbidden: 作为生产常驻进程
+
+  - path: docs/architecture
+    role: 文档
+    owner: 全员
+    purpose: 拍板后的系统架构
+    forbidden: 与代码长期不一致还不改 memory/map
+
+  - path: docs/ai
+    role: 文档
+    owner: 全员（AI 改代码时必须跟）
+    purpose: 目录实况、记忆、约定
+    forbidden: 只改代码不改 map
+
+  - path: docs/ops
+    role: 文档
+    owner: 部署/开发
+    purpose: 人如何安装、启动、打包
+    forbidden: 把操作步骤只写在 README 一句带过且与脚本不一致
+
+  - path: tests
+    role: 测试
+    owner: 框架团队
+    purpose: 接口、事件、丢帧、标定几何的回归
+    forbidden: 依赖真实海康才能跑的单测（那种放 scripts）

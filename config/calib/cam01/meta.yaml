@@ -1,0 +1,9 @@
+camera_serial: cam01-sample
+date: '2026-09-20'
+error:
+  distance_m: null
+  height_m: null
+height: 1080
+undistorted: true
+vendor: sample-not-for-production
+width: 1920

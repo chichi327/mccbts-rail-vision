@@ -1,0 +1,21 @@
+system:
+  gpu_id: 0
+  log_level: INFO
+  max_e2e_ms: 300
+  drop_if_frame_age_ms: 200
+  frame_slot_depth: 2
+  warning_distance_m: 2.0
+  danger_distance_m: 1.0
+  heartbeat_interval_s: 5
+  health:
+    host: 0.0.0.0
+    port: 8080
+  backend:
+    events_url: http://backend/api/vision/events
+    heartbeat_url: http://backend/api/vision/heartbeat
+    token: ""
+    post_timeout_ms: 100
+    retry_queue_size: 1000
+  preview:
+    enabled: false
+    mediamtx_addr: 127.0.0.1:8889

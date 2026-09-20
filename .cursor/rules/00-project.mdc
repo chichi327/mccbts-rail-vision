@@ -1,0 +1,23 @@
+---
+description: 仓库入口、文档同步与跨会话记忆（始终生效）
+alwaysApply: true
+---
+
+# 本仓库
+
+铁路视觉算法服务。先读 `AGENTS.md`。架构以 `docs/architecture/system-design.md` 为准；目录职责以 `docs/ai/module-map.yaml` 为准；操作以 `docs/ops/` 为准。
+
+## 记忆
+
+动手前若涉及架构/算法边界，读 `docs/ai/memory.md`。用户拍板或出现新禁忌时，追加一条带日期的记录，不要只写在对话里。
+
+## 改完即写文档
+
+发生下列任一情况，在同一次改动里更新文档（不要等用户再提）：
+
+- 增删目录或模块职责 → 改 `docs/ai/module-map.yaml`，运行 `python scripts/sync_architecture_map.py`
+- 启动/安装/打包步骤变化 → 改 `docs/ops/` 与根 `README.md` 链接
+- 插件接口或事件字段变化 → 改 `docs/algorithms/plugin-guide.md` 与 system-design 对应节
+- 配置项增减 → 改 `docs/ops/configuration.md` 和 `.env.example`
+
+禁止只改代码让 `architecture-map.md` 说谎。

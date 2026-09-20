@@ -1,0 +1,18 @@
+---
+description: 算法插件约定
+globs: algorithms/**/*.py
+alwaysApply: false
+---
+
+# algorithms/
+
+实现 `BaseDetector` 或 `BaseEstimator`。结果必须是 `core.base.types.Detection`。
+
+```python
+# 禁止
+d.attributes["dist"] = 1.2
+# 必须
+d.distance_to_track_m = 1.2
+```
+
+量测器使用传入的 `detections` 与 `calib`，不要 `import` 其他算法包。模型权重放 `models/`，不要提交大 `.pt`。

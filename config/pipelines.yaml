@@ -1,0 +1,9 @@
+pipelines:
+  - id: person_vehicle
+    steps:
+      - person_vehicle_detect
+      - track_distance
+  - id: obstacle
+    steps:
+      - obstacle_detect
+      - obstacle_height

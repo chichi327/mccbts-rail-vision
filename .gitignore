@@ -216,3 +216,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# 本项目
+data/retry_queue/
+logs/
+dist/
+*.pt
+!**/models/.gitkeep
