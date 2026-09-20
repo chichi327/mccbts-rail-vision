@@ -7,6 +7,7 @@ system:
   warning_distance_m: 2.0
   danger_distance_m: 1.0
   heartbeat_interval_s: 5
+  camera_offline_after_ms: 3000
   health:
     host: 0.0.0.0
     port: 8080

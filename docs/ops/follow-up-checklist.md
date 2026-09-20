@@ -167,8 +167,11 @@
 
 ### F3. 失败与运维
 
-- [ ] 相机断流、算法进程崩溃、标定失效，后端是否要看心跳区分「没人」和「系统挂了」
-- **我的结论**：
+- [x] 框架心跳已区分：相机断流、人车/障碍物流水线挂、标定失效（与「画面里没人」分开）
+- [x] 状态变化与持续异常写日志（`HEALTH_FAULT` / `HEALTH_RECOVER` / `HEALTH_STATUS`）
+- [ ] 后端是否按这些字段做运维展示（对接时确认）
+- **落点**：心跳 JSON `camera_online` / `pipeline_*_alive` / `calib_status` / `issues`；`GET /health`；`config/system.yaml` 的 `camera_offline_after_ms`
+- **我的结论**：框架侧按 8.3 上报并打日志。后端展示仍待 A2 接口确认。
 
 ---
 

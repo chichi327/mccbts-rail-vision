@@ -361,6 +361,8 @@ class CalibView(ABC):
 
 ### 8.3 心跳（独立通道，1～5s 一次即可）
 
+心跳用来区分「画面里没人」和「系统挂了」。没有行人时事件不发、心跳仍应 `camera_online=true` 且两条流水线 `*_alive=true`。
+
 ```json
 {
   "camera_id": "cam01",
@@ -370,11 +372,23 @@ class CalibView(ABC):
   "pipeline_obstacle_alive": true,
   "calib_status": "ok",
   "last_frame_age_ms": 80,
-  "dropped_stale_frames": 3
+  "dropped_stale_frames": 3,
+  "issues": [],
+  "calib_reason": ""
 }
 ```
 
-`calib_status`：`ok` | `invalid` | `stale`。
+| 现象 | 怎么看心跳 | 日志关键字 |
+|------|-------------|------------|
+| 相机断流 / ingest 停更 | `camera_online=false`，`issues` 含 `camera_offline`，`last_frame_age_ms` 变大 | `HEALTH_FAULT` + `issue=camera_offline`；RTSP 另有 `rtsp reconnect` |
+| 人车流水线进程退出 | `pipeline_person_alive=false`，`issues` 含 `pipeline_person_dead` | `HEALTH_FAULT` + `issue=pipeline_person_dead` |
+| 障碍物流水线进程退出 | `pipeline_obstacle_alive=false`，`issues` 含 `pipeline_obstacle_dead` | 同上，`pipeline_obstacle_dead` |
+| 标定缺文件或无效 | `calib_status=invalid`，`calib_reason` 有原因，`issues` 含 `calib_invalid` | `HEALTH_FAULT` + `issue=calib_invalid` |
+| 画面无人/无障碍物 | 上述字段仍为正常；只是没有 `person_enter_*` / `obstacle_appeared` | 无 `HEALTH_FAULT` |
+
+`calib_status`：`ok` | `invalid` | `stale`。恢复时打 `HEALTH_RECOVER`。异常持续期间每个心跳周期打一条 `HEALTH_STATUS`（含 `issues=`）。本地 `GET /health` 的 `heartbeats` 与上报字段相同，`status` 在有 `issues` 时为 `degraded`。
+
+`camera_online`：该路共享内存最新帧时间戳距现在超过 `system.camera_offline_after_ms`（默认 3000）则视为断流。一条流水线挂掉**不**再拉停另一条，心跳继续上报，便于对照。上报进程自己退出才整机停。
 
 ### 8.4 Reporter
 
@@ -525,6 +539,8 @@ system:
   gpu_id: 0
   max_e2e_ms: 300
   drop_if_frame_age_ms: 200
+  heartbeat_interval_s: 5
+  camera_offline_after_ms: 3000
   frame_slot_depth: 2
   warning_distance_m: 2.0
   danger_distance_m: 1.0
@@ -565,9 +581,9 @@ main
 
 **预览：** 叠框走进程内 `http://127.0.0.1:8081/preview`（旁路）。MediaMTX WebRTC（8889）可给人看子码流，不计入 300ms。
 
-**健康：** 进程心跳、RTSP 重连日志、过期丢帧率、标定状态。丢帧率持续高说明 300ms 预算不够，要降负载而不是加队列。
+**健康：** 进程心跳、RTSP 重连日志、过期丢帧率、标定状态。心跳字段区分断流 / 流水线挂 / 标定失效（见 8.3）。丢帧率持续高说明 300ms 预算不够，要降负载而不是加队列。
 
-**部署：** 算法服务器上 **MediaMTX 与 rail-vision 同机**（compose 默认一起起）。Linux 现场若容器访问不到相机，用 `docker-compose.field.yml` 走 host 网络。现有后端独立。
+**部署：** 算法服务器上 **MediaMTX 与 rail-vision 同机**。现场交付 `bash scripts/package.sh` 打出的 `*-field.tgz`，解压后 `./start.sh`（host 网络）。现有后端独立。
 
 ---
 

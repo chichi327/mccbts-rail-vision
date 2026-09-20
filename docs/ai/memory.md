@@ -13,6 +13,10 @@
 
 ## 2026-09-20
 
+- 决策：现场交付是一份 `*-field.tgz`：开发机 `bash scripts/package.sh`，服务器解压后 `./start.sh`。包内带算法镜像与 MediaMTX 镜像；host 网络；`.env` 不进包。
+- 范围：`scripts/package.sh`、`deploy/field/`、`docs/ops/packaging.md`。
+- 例外：相机 RTSP、标定、后端 URL 仍须在现场改 `config/` 与 `.env`。无 GPU 用 `./start.sh --cpu`。Docker Hub 不通时 `package.sh` 用 `PYTHON_IMAGE` / 自动 DaoCloud 镜像拉基础层。
+
 - 决策：`docs/README.md` 是文档总索引；新增或搬迁 `docs/**/*.md` 必须写入该索引。`python scripts/sync_architecture_map.py` 校验链接。
 - 范围：`docs/`、`scripts/sync_architecture_map.py`、`.cursor/rules` 与文档同步 skill。
 - 例外：自动生成的 `docs/ai/architecture-map.md` 仍只由脚本改写，但必须出现在索引里。
@@ -28,3 +32,6 @@
 - 决策：主进程预览 `http://127.0.0.1:8081/preview`。
 - 决策（修订）：取消 `source: webcam`。本机 USB 经 FFmpeg → MediaMTX publisher → ingest 只拉 `127.0.0.1:8554`，与现场同一条 Python 链路。`bash scripts/start.sh --webcam`。合成源仅单测（`cameras.synthetic.yaml`）。
 - 决策：预览卡顿因整帧经 Manager/Queue pickle；改为 SharedMemory 传帧，检测结果走小 Queue。
+- 决策：心跳必须能区分相机断流、人车/障碍物流水线崩溃、标定失效；与「没人」无关。故障打 `HEALTH_FAULT`，恢复打 `HEALTH_RECOVER`。一条流水线退出不拉停另一条。
+- 范围：`core/health`、心跳 JSON、`GET /health`、ingest/pipeline 日志。
+- 例外：后端如何展示这些字段仍待对接。

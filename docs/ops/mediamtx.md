@@ -57,13 +57,7 @@ bash scripts/start.sh
 
 path 名必须等于相机 `id`。改海康地址时 **yml 与 example 一起改**。
 
-Compose 里算法容器若走桥接网络，把 `rtsp_main` 改成 `rtsp://mediamtx:8554/cam01`。Linux 现场推荐：
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.field.yml up -d
-```
-
-`field` 使用 host 网络，此时 `127.0.0.1:8554` 可用。
+Compose 里算法容器若走桥接网络，把 `rtsp_main` 改成 `rtsp://mediamtx:8554/cam01`。Linux 现场用发布包 `./start.sh`（host 网络，`127.0.0.1:8554` 可用），见 [packaging.md](packaging.md)。开发机仓库内可叠 `docker-compose.field.yml`。
 
 不经过 Docker、本机已装二进制时：
 

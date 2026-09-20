@@ -7,6 +7,7 @@ from core.calib.store import CalibStore
 from core.ingest.shm_frame import SharedFrameBuffer
 from core.ingest.sources import open_source
 from core.ingest.undistort import undistort_bgr
+from core.logger import setup_logging
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +17,9 @@ def run_ingest(
     frame_buf: SharedFrameBuffer,
     calib_dir: str,
     stop_event,
+    log_level: str = "INFO",
 ) -> None:
+    setup_logging(log_level)
     store = CalibStore()
     view = store.load_camera(cam["id"], calib_dir)
     src = open_source(cam)

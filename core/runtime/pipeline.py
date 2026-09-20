@@ -13,6 +13,7 @@ from core.event.eventer import Eventer
 from core.ingest.mailbox import LatestFrameMailbox
 from core.ingest.packet import FramePacket
 from core.ingest.shm_frame import SharedFrameBuffer
+from core.logger import setup_logging
 from core.runtime.loader import load_pipeline_steps
 from core.track.iou_tracker import IoUTracker
 
@@ -33,7 +34,9 @@ def run_pipeline(
     event_queue: Queue,
     system: dict[str, Any],
     stop_event,
+    drop_counter=None,
 ) -> None:
+    setup_logging(str(system.get("log_level", "INFO")))
     steps = load_pipeline_steps(step_names, algorithms)
     store = CalibStore()
     bufs = {cam_id: SharedFrameBuffer(**kwargs) for cam_id, kwargs in frame_buf_args.items()}
@@ -47,6 +50,7 @@ def run_pipeline(
     drop_age = int(system.get("drop_if_frame_age_ms", 200))
     dropped = 0
     last_seq = {cam["id"]: -1 for cam in cameras}
+    logged_invalid_calib: set[str] = set()
     log.info("pipeline start id=%s steps=%s", pipeline_id, step_names)
     try:
         while not stop_event.is_set():
@@ -61,6 +65,15 @@ def run_pipeline(
                 age = now_ms() - ts_ms
                 if age > drop_age:
                     dropped += 1
+                    if drop_counter is not None:
+                        drop_counter.value = dropped
+                    log.debug(
+                        "drop stale frame camera=%s pipeline=%s age_ms=%s count=%s",
+                        cam_id,
+                        pipeline_id,
+                        age,
+                        dropped,
+                    )
                     continue
                 packet = FramePacket(
                     camera_id=cam_id,
@@ -76,6 +89,15 @@ def run_pipeline(
                         detections = trackers[packet.camera_id].update(detections)
                     elif isinstance(step, BaseEstimator):
                         if not calib.valid:
+                            if cam_id not in logged_invalid_calib:
+                                reason = getattr(calib, "reason", "invalid")
+                                log.warning(
+                                    "HEALTH_FAULT camera=%s issue=calib_invalid pipeline=%s reason=%s",
+                                    cam_id,
+                                    pipeline_id,
+                                    reason,
+                                )
+                                logged_invalid_calib.add(cam_id)
                             continue
                         detections = step.estimate(
                             packet.frame_bgr, packet.camera_id, detections, calib

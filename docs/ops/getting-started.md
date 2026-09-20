@@ -83,6 +83,11 @@ python scripts/test_single_camera.py --camera-id cam01
 
 默认 HTTP：`http://127.0.0.1:8080/health`（见 `config/system.yaml` 的 `health.port`）。
 
+JSON 含每路心跳快照。`status=degraded` 表示有运维问题，不是「没人」。日志可 grep：
+
+- `HEALTH_FAULT` / `HEALTH_RECOVER` / `HEALTH_STATUS`
+- `issue=camera_offline` | `pipeline_person_dead` | `pipeline_obstacle_dead` | `calib_invalid`
+
 ## 跑测试
 
 ```bash

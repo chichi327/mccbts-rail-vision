@@ -12,7 +12,7 @@
 | 后续逐项确认清单 | [docs/ops/follow-up-checklist.md](docs/ops/follow-up-checklist.md) |
 | 手头摄像头验证通路 | [docs/ops/verify-with-camera.md](docs/ops/verify-with-camera.md) |
 | MediaMTX 现场中转 | [docs/ops/mediamtx.md](docs/ops/mediamtx.md) |
-| Docker 打包、现场部署 | [docs/ops/packaging.md](docs/ops/packaging.md) |
+| 打现场包、服务器 ./start.sh | [docs/ops/packaging.md](docs/ops/packaging.md) |
 | 相机 / 标定 / `.env` | [docs/ops/configuration.md](docs/ops/configuration.md) |
 | 整体架构（拍板文档） | [docs/architecture/system-design.md](docs/architecture/system-design.md) |
 | 这个目录是干什么的 | [docs/ai/architecture-map.md](docs/ai/architecture-map.md) |

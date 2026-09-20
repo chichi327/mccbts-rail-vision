@@ -58,6 +58,8 @@ class Heartbeat:
     calib_status: CalibStatus
     last_frame_age_ms: int
     dropped_stale_frames: int
+    issues: list[str] = field(default_factory=list)
+    calib_reason: str = ""
 
     def to_payload(self) -> dict[str, Any]:
         return asdict(self)

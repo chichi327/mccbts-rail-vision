@@ -50,16 +50,25 @@ def main() -> None:
     event_queue = ctx.Queue(maxsize=256)
     procs: list[mp.Process] = []
 
+    log_level = str(cfg.system.get("log_level", "INFO"))
+    manager = ctx.Manager()
+    process_alive = manager.dict()
+    latest_payloads = manager.dict()
+    drop_counters = {pipe["id"]: ctx.Value("q", 0) for pipe in cfg.pipelines}
+    for pipe in cfg.pipelines:
+        process_alive[pipe["id"]] = True
+
     ingest_threads: list[threading.Thread] = []
     for cam in cfg.cameras:
         thread = threading.Thread(
             name=f"ingest-{cam['id']}",
             target=run_ingest,
-            args=(cam, frame_bufs[cam["id"]], cam["calib_dir"], stop),
+            args=(cam, frame_bufs[cam["id"]], cam["calib_dir"], stop, log_level),
             daemon=True,
         )
         ingest_threads.append(thread)
         thread.start()
+    pipe_procs: list[mp.Process] = []
     for pipe in cfg.pipelines:
         proc = ctx.Process(
             name=f"pipe-{pipe['id']}",
@@ -74,14 +83,26 @@ def main() -> None:
                 event_queue,
                 cfg.system,
                 stop,
+                drop_counters[pipe["id"]],
             ),
         )
+        pipe_procs.append(proc)
         procs.append(proc)
 
     health_proc = ctx.Process(
         name="report-health",
         target=run_health,
-        args=(cfg.cameras, event_queue, cfg.backend, cfg.system, stop, {"person_vehicle": True, "obstacle": True}),
+        args=(
+            cfg.cameras,
+            event_queue,
+            cfg.backend,
+            cfg.system,
+            stop,
+            process_alive,
+            frame_buf_args,
+            drop_counters,
+            latest_payloads,
+        ),
     )
     procs.append(health_proc)
 
@@ -94,7 +115,10 @@ def main() -> None:
         args=(
             health_cfg.get("host", "127.0.0.1"),
             int(health_cfg.get("port", 8080)),
-            lambda: health_snapshot({"cameras": [c["id"] for c in cfg.cameras]}),
+            lambda: health_snapshot(
+                latest_payloads,
+                extra={"cameras": [c["id"] for c in cfg.cameras]},
+            ),
             stop,
         ),
         daemon=True,
@@ -117,13 +141,36 @@ def main() -> None:
     if preview_cfg.get("enabled", True):
         log.info("open preview http://127.0.0.1:%s/preview", int(preview_cfg.get("port", 8081)))
     try:
-        while not stop.is_set():
-            dead = [p.name for p in procs if not p.is_alive()]
-            if dead:
-                log.error("process exited: %s", dead)
-                stop.set()
-                break
-            time.sleep(0.3)
+            logged_ingest_dead: set[str] = set()
+            while not stop.is_set():
+                if not health_proc.is_alive():
+                    log.error("HEALTH_PROCESS_DEAD name=%s exitcode=%s", health_proc.name, health_proc.exitcode)
+                    stop.set()
+                    break
+                for proc in pipe_procs:
+                    pipe_id = proc.name.removeprefix("pipe-")
+                    if proc.is_alive():
+                        continue
+                    if process_alive.get(pipe_id, False):
+                        issue = (
+                            "pipeline_person_dead"
+                            if pipe_id == "person_vehicle"
+                            else "pipeline_obstacle_dead"
+                        )
+                        log.error(
+                            "HEALTH_FAULT camera=* issue=%s name=%s exitcode=%s",
+                            issue,
+                            proc.name,
+                            proc.exitcode,
+                        )
+                        process_alive[pipe_id] = False
+                for thread in ingest_threads:
+                    if thread.is_alive() or thread.name in logged_ingest_dead:
+                        continue
+                    cam_id = thread.name.removeprefix("ingest-")
+                    log.error("HEALTH_FAULT camera=%s issue=camera_offline ingest_thread_dead", cam_id)
+                    logged_ingest_dead.add(thread.name)
+                time.sleep(0.3)
     finally:
         stop.set()
         for proc in procs:

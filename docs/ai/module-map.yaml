@@ -48,7 +48,7 @@ modules:
   - path: core/health
     role: 健康
     owner: 框架团队
-    purpose: 相机/流水线/标定心跳
+    purpose: 相机/流水线/标定心跳；故障码写入 issues 与 HEALTH_* 日志
     forbidden: 把心跳混进事件通道
 
   - path: core/preview
@@ -98,6 +98,12 @@ modules:
     owner: 框架团队
     purpose: 启动、打包、文档同步、单路调试
     forbidden: 作为生产常驻进程
+
+  - path: deploy/field
+    role: 部署
+    owner: 框架团队
+    purpose: 现场发布包模板（host 网络 compose、启停脚本）
+    forbidden: 把密钥写进模板；在开发仓库根直接当日常 compose 用
 
   - path: docs
     role: 文档

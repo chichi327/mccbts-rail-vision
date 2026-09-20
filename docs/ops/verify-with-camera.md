@@ -98,7 +98,7 @@ open preview http://127.0.0.1:8081/preview
 
 若仍觉得卡：关其它占用摄像头的软件，只开一个预览标签页。`target_fps` 可在 `cameras.yaml` 调到 15～20。
 
-健康检查仍是 `http://127.0.0.1:8080/health`。
+健康检查仍是 `http://127.0.0.1:8080/health`。断流 / 流水线挂 / 标定失效看 `issues` 和日志 `HEALTH_FAULT`，不要和「没检出人」混在一起。
 
 假检测器框不会跟着你走。`person_enter_warning` 日志通常只出现一次。画面会一直刷新。
 

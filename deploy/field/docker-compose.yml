@@ -1,19 +1,13 @@
+# 现场发布包用：host 网络，算法只拉本机 8554。不要在开发仓库根直接 compose 本文件。
 services:
   mediamtx:
     image: bluenviron/mediamtx:1.11.3
     volumes:
       - ./config/mediamtx.yml:/mediamtx.yml:ro
-    ports:
-      - "8554:8554"
-      - "8889:8889"
     restart: unless-stopped
-    # 容器要能访问海康网段。Linux 现场用 scripts/package.sh 发布包（host 网络）。开发机可叠 docker-compose.field.yml。
+    network_mode: host
 
   rail-vision:
-    build:
-      context: .
-      args:
-        PYTHON_IMAGE: ${PYTHON_IMAGE:-python:3.11-slim-bookworm}
     image: mccbts-rail-vision:local
     depends_on:
       - mediamtx
@@ -22,12 +16,8 @@ services:
     volumes:
       - ./config:/app/config:ro
       - ./data:/app/data
-    ports:
-      - "8080:8080"
-      - "8081:8081"
     restart: unless-stopped
     runtime: nvidia
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    network_mode: host
     environment:
       NVIDIA_VISIBLE_DEVICES: all

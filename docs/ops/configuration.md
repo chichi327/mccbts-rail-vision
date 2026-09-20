@@ -13,7 +13,7 @@
 | `config/mediamtx.webcam.yml` | 本机 USB publisher 中转，配合 `start.sh --webcam` |
 | `config/algorithms.yaml` | 插件开关、模块路径、算法私有参数 |
 | `config/pipelines.yaml` | 两条 DAG：人车链、障碍物链 |
-| `config/system.yaml` | GPU、300ms 相关阈值、健康端口、预览 |
+| `config/system.yaml` | GPU、300ms 相关阈值、健康端口、预览、心跳周期、断流判定 `camera_offline_after_ms` |
 | `.env` | 后端 URL、token（覆盖 system.yaml 中的占位） |
 | `config/calib/<camera_id>/` | 供应商标定 |
 
@@ -27,7 +27,9 @@
 | `rails.yaml` | 地面系钢轨几何 |
 | `meta.yaml` | 分辨率、`undistorted: true`、日期、误差、供应商 |
 
-缺文件时该相机 `calib_status=invalid`：检测可跑，距离/高度不上报。
+缺文件时该相机 `calib_status=invalid`：检测可跑，距离/高度不上报。心跳 `issues` 含 `calib_invalid`，日志 `HEALTH_FAULT issue=calib_invalid`。
+
+最新帧超过 `camera_offline_after_ms`（默认 3000）则 `camera_online=false`，与「没检出人」无关。
 
 ## 环境变量
 

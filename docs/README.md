@@ -40,7 +40,7 @@
 | [verify-with-camera.md](ops/verify-with-camera.md) | 开发 | USB 或 RTSP 验证拉流与流水线 |
 | [mediamtx.md](ops/mediamtx.md) | 部署 | 同机中转、透传、断网验收 |
 | [configuration.md](ops/configuration.md) | 开发/部署 | YAML、标定目录、密钥 |
-| [packaging.md](ops/packaging.md) | 部署 | 可编辑安装、Docker |
+| [packaging.md](ops/packaging.md) | 部署 | `package.sh` 打 field 包、现场 `./start.sh` |
 
 ### `docs/algorithms/` — 插件
 

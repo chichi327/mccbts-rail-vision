@@ -1,0 +1,5 @@
+services:
+  rail-vision:
+    runtime: runc
+    environment:
+      NVIDIA_VISIBLE_DEVICES: ""

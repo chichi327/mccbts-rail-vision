@@ -43,3 +43,11 @@ class CalibStore:
 
     def status(self, camera_id: str) -> CalibStatus:
         return self._status.get(camera_id, "invalid")
+
+    def reason(self, camera_id: str) -> str:
+        view = self._views.get(camera_id)
+        if isinstance(view, InvalidCalibView):
+            return view.reason
+        if camera_id not in self._views:
+            return f"no calib for {camera_id}"
+        return ""

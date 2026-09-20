@@ -14,7 +14,7 @@
 | `core/track` | 跟踪 | 框架团队 | 为人车（及障碍物）补 object_id | 修改检测类别 |
 | `core/event` | 事件 | 框架团队 | 预警/危险进出、障碍物出现消失 | 直接调模型 |
 | `core/report` | 上报 | 框架团队 | HTTP POST 后端、超时、本地重试队列 | 改变算法语义或字段名 |
-| `core/health` | 健康 | 框架团队 | 相机/流水线/标定心跳 | 把心跳混进事件通道 |
+| `core/health` | 健康 | 框架团队 | 相机/流水线/标定心跳；故障码写入 issues 与 HEALTH_* 日志 | 把心跳混进事件通道 |
 | `core/preview` | 预览 | 框架团队 | 内网叠框预览（MJPEG /preview），不计入 300ms 链路 | 作为算法输入源 |
 | `algorithms/person_vehicle_detect` | 检测器插件 | 人员车辆团队 | 已去畸变帧 → person/car/truck 框 | 计算距离；把人车标成 obstacle |
 | `algorithms/track_distance` | 量测器插件 | 测距团队 | 用人车框 + CalibView 补 distance_to_track_m | 自己再跑检测 |
@@ -23,6 +23,7 @@
 | `config` | 配置 | 部署/框架 | 相机、算法、流水线、系统阈值、标定、MediaMTX 中转 yml | 把密钥提交进 git（用 .env） |
 | `services` | 辅助进程 | 框架团队 | 预览 HTTP、健康检查入口 | 塞进算法逻辑 |
 | `scripts` | 工具 | 框架团队 | 启动、打包、文档同步、单路调试 | 作为生产常驻进程 |
+| `deploy/field` | 部署 | 框架团队 | 现场发布包模板（host 网络 compose、启停脚本） | 把密钥写进模板；在开发仓库根直接当日常 compose 用 |
 | `docs` | 文档 | 全员 | 文档索引 README.md；人和 AI 按意图查找 | 新增 docs 下 md 却不写入 README 索引 |
 | `docs/architecture` | 文档 | 全员 | 拍板后的系统架构 | 与代码长期不一致还不改 memory/map |
 | `docs/algorithms` | 文档 | 算法团队 / 框架 | 插件接口与接入步骤 | 与 core.base 或 system-design 字段长期不一致 |
