@@ -11,6 +11,7 @@
 | 安装、启动、单路调试 | [docs/ops/getting-started.md](docs/ops/getting-started.md) |
 | 后续逐项确认清单 | [docs/ops/follow-up-checklist.md](docs/ops/follow-up-checklist.md) |
 | 手头摄像头验证通路 | [docs/ops/verify-with-camera.md](docs/ops/verify-with-camera.md) |
+| MediaMTX 现场中转 | [docs/ops/mediamtx.md](docs/ops/mediamtx.md) |
 | Docker 打包、现场部署 | [docs/ops/packaging.md](docs/ops/packaging.md) |
 | 相机 / 标定 / `.env` | [docs/ops/configuration.md](docs/ops/configuration.md) |
 | 整体架构（拍板文档） | [docs/architecture/system-design.md](docs/architecture/system-design.md) |
@@ -24,10 +25,12 @@ python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
 python scripts/gen_sample_calib.py
-bash scripts/start.sh
+# 本机 USB（FFmpeg → MediaMTX → ingest）
+bash scripts/start.sh --webcam
+# 现场/工位海康：先 docker compose up -d mediamtx，再 bash scripts/start.sh
 ```
 
-健康检查：`http://127.0.0.1:8080/health`。摄像头配置下预览：`http://127.0.0.1:8081/preview`。
+健康检查：`http://127.0.0.1:8080/health`。有码流后预览：`http://127.0.0.1:8081/preview`。
 
 ## AI 从这里开始
 
@@ -36,9 +39,9 @@ bash scripts/start.sh
 ## 运行时结构（摘要）
 
 ```
-海康主码流 → ingest（硬解/OpenCV、去畸变、最新帧）
-                ├─ 流水线 person_vehicle：检测 → 跟踪 → 测距
+海康主码流 → 本机 MediaMTX（透传重连）→ ingest → 共享内存
+                ├─ 流水线 person_vehicle：检测 → 跟踪 → 距
                 └─ 流水线 obstacle：检测 → 跟踪 → 高度
-                        → 事件 → HTTP 上报现有后端
-子码流 → MediaMTX 预览（不在 300ms 链路上）
+                        → 事件 → HTTP 上报
+叠框预览 8081（旁路）；本机 USB 也经 MediaMTX，与现场同一条 ingest
 ```

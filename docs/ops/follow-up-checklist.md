@@ -39,10 +39,10 @@
 
 ### B1. 相机清单
 
-- [ ] 路数、安装位置、每路 ID（如 `cam01`）
-- [ ] 主码流 RTSP（算法用）、子码流 RTSP（预览用，可选）
+- [ ] 路数（现场 6 路）、安装位置、每路 ID（与 MediaMTX path 同名）
+- [ ] 海康主码流写入 `config/mediamtx.yml`；`rtsp_main` 指向本机 `8554/<id>`
 - [ ] 账号密码、网段是否和算法服务器互通
-- **落点**：`config/cameras.yaml`
+- **落点**：`config/mediamtx.yml`、`config/cameras.yaml`（示例 `cameras.rtsp.example.yaml`）
 - **我的结论**：
 
 ### B2. 分辨率与帧率
@@ -152,10 +152,11 @@
 
 ## F. 体验与验收（框架侧）
 
-### F1. 叠框预览
+### F1. 预览与拉流中转
 
-- [x] 本地持续预览已提供：`preview.enabled` 时打开 `http://127.0.0.1:8081/preview`（旁路，不进 300ms）
-- [ ] 现场验收是否还要 MediaMTX / 子码流网页（比本地 MJPEG 更适合多路）
+- [x] 本地叠框：`http://127.0.0.1:8081/preview`
+- [x] MediaMTX 与算法同机：透传拉海康、ingest 对本机 RTSP 重连；本机 USB 走 FFmpeg publisher，无第二套 ingest（见 [mediamtx.md](mediamtx.md)）
+- [ ] 6 路真实地址写入 `mediamtx.yml` 后做断网再联网恢复验收，并确认事件仍 <300ms
 - **我的结论**：
 
 ### F2. 延迟压测
@@ -178,7 +179,7 @@
 3. C1 标定交付（决定测距测高有没有物理意义）
 4. D2 阈值 + D1 距离口径（业务对错）
 5. E1～E4 算法团队排期
-6. F1 预览是否要做
+6. 填写 `mediamtx.yml` 并做断网恢复（[mediamtx.md](mediamtx.md)）
 7. F2 上真模型后再压 300ms
 
 不要并行把「假检测器」和「供应商标定精度」混在一次验收里：先证明**管道通**（[verify-with-camera.md](verify-with-camera.md)），再证明**测得准**。

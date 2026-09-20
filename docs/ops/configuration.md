@@ -6,7 +6,11 @@
 
 | 路径 | 作用 |
 |------|------|
-| `config/cameras.yaml` | 相机列表、分辨率、`source`（`synthetic` / `webcam` / `rtsp`）、标定目录 |
+| `config/cameras.yaml` | 相机列表；真实源只有 `rtsp`（`rtsp_main` 指向本机 8554） |
+| `config/cameras.rtsp.example.yaml` | 现场 6 路 + 本机中转地址模板 |
+| `config/cameras.synthetic.yaml` | 无硬件单测 |
+| `config/mediamtx.yml` | MediaMTX：海康 `source`、透传、小队列 |
+| `config/mediamtx.webcam.yml` | 本机 USB publisher 中转，配合 `start.sh --webcam` |
 | `config/algorithms.yaml` | 插件开关、模块路径、算法私有参数 |
 | `config/pipelines.yaml` | 两条 DAG：人车链、障碍物链 |
 | `config/system.yaml` | GPU、300ms 相关阈值、健康端口、预览 |

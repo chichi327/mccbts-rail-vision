@@ -27,25 +27,23 @@ bash scripts/package.sh
 docker build -t mccbts-rail-vision:local .
 ```
 
-运行（GPU 机器）：
+运行（GPU 机器，含 MediaMTX 中转）：
 
 ```bash
-docker compose up -d rail-vision
+docker compose up -d
 ```
 
-仅预览中转：
+Linux 现场相机网段用 host 网络：
 
 ```bash
-docker compose --profile preview up -d
+docker compose -f docker-compose.yml -f docker-compose.field.yml up -d
 ```
 
-Compose 里 `rail-vision` 服务需要 NVIDIA Container Toolkit；无 GPU 时用：
+无 GPU：
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.cpu.yml up
+docker compose -f docker-compose.yml -f docker-compose.cpu.yml up -d
 ```
-
-（若未提供 cpu override，可改 `docker-compose.yml` 去掉 `runtime: nvidia`，并把相机 `source` 设为 `synthetic`。）
 
 ## 拷到现场算法服务器
 
@@ -54,12 +52,7 @@ docker compose -f docker-compose.yml -f docker-compose.cpu.yml up
 3. 相机网段与容器网络打通，RTSP 走内网
 4. 不要把 `.env` 打进镜像
 
-```bash
-docker run --rm --gpus all --env-file .env \
-  -v "$PWD/config:/app/config:ro" \
-  -p 8080:8080 \
-  mccbts-rail-vision:local
-```
+单独 `docker run` 算法镜像时，须在同机另起 MediaMTX，且 `rtsp_main` 指向中转；现场请用 compose（含 `mediamtx` 服务）。
 
 ## 版本号
 

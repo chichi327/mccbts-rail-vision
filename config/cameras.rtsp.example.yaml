@@ -1,0 +1,60 @@
+# 现场 6 路：ingest 拉本机 MediaMTX，不要直连海康。
+# 用法：备份现有 cameras.yaml 后复制本文件覆盖，并按现场改 calib_dir / 分辨率。
+# MediaMTX 的 path 名必须与 id 相同（见 config/mediamtx.yml）。
+
+cameras:
+  - id: cam01
+    name: 现场-1
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam01
+    rtsp_sub: rtsp://127.0.0.1:8554/cam01_sub
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam01
+  - id: cam02
+    name: 现场-2
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.65:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam02
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam02
+  - id: cam03
+    name: 现场-3
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.66:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam03
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam03
+  - id: cam04
+    name: 现场-4
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.67:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam04
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam04
+  - id: cam05
+    name: 现场-5
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.68:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam05
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam05
+  - id: cam06
+    name: 现场-6
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.69:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam06
+    width: 1920
+    height: 1080
+    target_fps: 10
+    calib_dir: config/calib/cam06

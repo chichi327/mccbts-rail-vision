@@ -12,7 +12,7 @@ modules:
   - path: core/ingest
     role: 接入
     owner: 框架团队
-    purpose: RTSP/合成/webcam 拉流、去畸变、共享内存最新帧
+    purpose: 本机 MediaMTX RTSP 拉流、合成源单测、去畸变、共享内存最新帧
     forbidden: 跑模型、读业务阈值
 
   - path: core/calib
@@ -84,7 +84,7 @@ modules:
   - path: config
     role: 配置
     owner: 部署/框架
-    purpose: 相机、算法注册、流水线 DAG、系统阈值、标定文件
+    purpose: 相机、算法、流水线、系统阈值、标定、MediaMTX 中转 yml
     forbidden: 把密钥提交进 git（用 .env）
 
   - path: services

@@ -4,7 +4,8 @@
 
 - 事件链路端到端 **< 300ms**（采集完成 → HTTP 请求已发出）
 - 帧年龄 `> drop_if_frame_age_ms`（默认 200）必须丢弃
-- 算法路径禁止经默认 MediaMTX 再编码
+- 算法只拉 **同机 MediaMTX 透传** 地址；禁止经 MediaMTX **转码**或默认大缓冲当算法源
+- 禁止 ingest `source: webcam`；本机 USB 用 `bash scripts/start.sh --webcam`
 - 禁止用加长队列「扛延迟」
 
 ## 算法插件

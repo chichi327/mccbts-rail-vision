@@ -7,11 +7,13 @@
 
 待确认的业务项见 [follow-up-checklist.md](follow-up-checklist.md)。
 
+ingest **只认 RTSP**（默认 `rtsp://127.0.0.1:8554/cam01`）。本机 USB 与现场海康的差别只在谁把画面送进 MediaMTX，Python 侧不再维护第二套采集。
+
 ---
 
 ## 0. 先停掉旧进程
 
-若之前 `bash scripts/start.sh` 还在跑，在那个终端 `Ctrl+C`。改 `cameras.yaml` 后必须重启才生效。
+若之前 `bash scripts/start.sh` 还在跑，在那个终端 `Ctrl+C`。改 `cameras.yaml` 后必须重启才生效。`--webcam` 与现场 `docker compose` 的 MediaMTX **不要同时占 8554**。
 
 ```bash
 source .venv/bin/activate
@@ -31,64 +33,60 @@ BACKEND_HEARTBEAT_URL=http://backend/api/vision/heartbeat
 
 ## 1. 选一种接入方式
 
-### 方式 A：笔记本 / USB 摄像头（最常见）
+### 方式 A：笔记本 / USB 摄像头
 
-改 `config/cameras.yaml`：
+`config/cameras.yaml` 保持默认即可（拉本机 8554）：
 
 ```yaml
 cameras:
   - id: cam01
-    name: 本机摄像头
-    source: webcam
-    device_index: 0
-    rtsp_main: ""
-    rtsp_sub: ""
+    name: 经本机 MediaMTX（海康或 FFmpeg 推流）
+    source: rtsp
+    rtsp_main: rtsp://127.0.0.1:8554/cam01
     width: 1280
     height: 720
-    target_fps: 10
+    target_fps: 15
     calib_dir: config/calib/cam01
 ```
 
-`device_index` 打不开就试 `1`。macOS 若提示无权限：系统设置 → 隐私与安全 → 相机 → 允许 **终端** 和 **Cursor**。
+需要 FFmpeg（macOS: `brew install ffmpeg`）。macOS 若提示无权限：系统设置 → 隐私与安全 → 相机 → 允许 **终端**。
 
-分辨率可改成摄像头实际输出；框架会 resize 到这里的宽高。
-
-### 方式 B：海康 / 任意 IP 摄像机（RTSP）
-
-先用系统播放器或 VLC 确认地址能出画面，再写进配置。海康常见主码流：
-
-```text
-rtsp://用户名:密码@相机IP:554/Streaming/Channels/101
+```bash
+source .venv/bin/activate
+bash scripts/start.sh --webcam
 ```
 
-子码流一般是 `102`。密码若有特殊字符需要 URL 编码。
+脚本会起 publisher 模式的 MediaMTX、用 FFmpeg 推 USB，再启动 `main.py`。设备序号用环境变量 `WEBCAM_DEVICE`（默认 `0`）。
+
+不要写 `source: webcam`——ingest 会直接报错。
+
+### 方式 B：海康 RTSP（工位一台也一样）
+
+先起拉海康的中转，步骤见 [mediamtx.md](mediamtx.md)。`cameras.yaml` 与方式 A 相同，只改分辨率等参数以匹配码流：
 
 ```yaml
 cameras:
   - id: cam01
     name: 现场或试验相机
     source: rtsp
-    rtsp_main: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
-    rtsp_sub: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
+    rtsp_main: rtsp://127.0.0.1:8554/cam01
     width: 1920
     height: 1080
     target_fps: 10
     calib_dir: config/calib/cam01
 ```
 
-本机需能访问该 IP；macOS 建议已装 ffmpeg（`brew install ffmpeg`），OpenCV 走 FFMPEG 拉 RTSP。
+`mediamtx.yml` 里 `paths.cam01.source` 必须等于海康地址。然后：
+
+```bash
+docker compose up -d mediamtx
+source .venv/bin/activate
+bash scripts/start.sh
+```
 
 ---
 
 ## 2. 用主进程持续识别并看画面（推荐）
-
-当前 `cameras.yaml` 已是 `webcam`，**不用测试脚本**，直接：
-
-```bash
-# 先停掉占用摄像头的其它程序和旧的 test_single_camera / start.sh
-source .venv/bin/activate
-bash scripts/start.sh
-```
 
 日志里会出现：
 
@@ -110,7 +108,7 @@ open preview http://127.0.0.1:8081/preview
 
 ## 3. 最小验证（可选）：单帧抓拍
 
-不要与 `start.sh` 同时跑（会抢摄像头）。在仓库根：
+不要与 `start.sh` 同时跑（会抢同一路 RTSP 以外的资源；webcam 模式下会抢 USB）。须先让 MediaMTX 上已有画面（`--webcam` 起的中转，或 compose 拉海康）。在仓库根：
 
 ```bash
 python scripts/test_single_camera.py --camera-id cam01 --pipeline person_vehicle
@@ -127,18 +125,17 @@ python scripts/test_single_camera.py --camera-id cam01 --pipeline obstacle
 
 **失败排查**
 
-- `读不到帧`：webcam 权限 / `device_index`；rtsp 地址、账号、防火墙
-- `打不开摄像头`：换 index，或系统没授权给 Terminal
-- JPEG 仍是灰图带一条白线：`source` 还是 `synthetic`，配置没改或改错文件
+- `读不到帧`：8554 上没有推流/拉流；海康地址、账号、防火墙；`--webcam` 时 FFmpeg/相机权限
+- `打不开摄像头`：macOS 未授权终端访问相机；`WEBCAM_DEVICE` 换 `1`
+- JPEG 仍是灰图带一条白线：实际读的是 `cameras.synthetic.yaml`，不是真相机
 - 有图但全黑：摄像头被占用（腾讯会议/浏览器先退出）
+- `source=webcam` 报错：配置写错，改回 `source: rtsp`
 
 ---
 
 ## 4. 完整服务（无预览时看日志）
 
-```bash
-bash scripts/start.sh
-```
+方式 A 用 `bash scripts/start.sh --webcam`；方式 B 用 compose 起中转后 `bash scripts/start.sh`。
 
 另开终端：
 

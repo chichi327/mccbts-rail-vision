@@ -1,0 +1,10 @@
+# Linux 算法服务器：中转与相机同网、与算法同机。
+# docker compose -f docker-compose.yml -f docker-compose.field.yml up -d
+services:
+  mediamtx:
+    network_mode: host
+    ports: []
+  rail-vision:
+    network_mode: host
+    ports: []
+    extra_hosts: []

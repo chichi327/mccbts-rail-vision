@@ -26,7 +26,7 @@ def main() -> None:
     parser.add_argument("--camera-id", default="cam01")
     parser.add_argument("--pipeline", default="person_vehicle")
     parser.add_argument("--save-jpeg", default="data/debug/last_frame.jpg")
-    parser.add_argument("--tries", type=int, default=80, help="webcam 需要多读几帧预热")
+    parser.add_argument("--tries", type=int, default=80, help="RTSP 需要多读几帧预热")
     args = parser.parse_args()
     cfg = load_app_config(args.config_dir)
     cam = next(c for c in cfg.cameras if c["id"] == args.camera_id)
@@ -43,7 +43,7 @@ def main() -> None:
         sleep(0.03)
     src.release()
     if packet is None:
-        raise SystemExit("读不到帧：检查 source=webcam/rtsp、权限、地址")
+        raise SystemExit("读不到帧：检查 MediaMTX 8554 是否有流、rtsp_main、权限")
     packet.frame_bgr = undistort_bgr(packet.frame_bgr, view)
     dets: list[Detection] = []
     tracker = IoUTracker(prefix=f"{cam['id']}-{args.pipeline}")

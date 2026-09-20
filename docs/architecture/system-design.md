@@ -54,21 +54,23 @@
 ## 2. 整体架构
 
 ```
-                    海康摄像头（多路）
-                   /                \
-          主码流 RTSP                 子码流 RTSP
-          低延迟直拉                    │
-                 │                      ▼
-                 │                 MediaMTX（仅预览）
-                 │                      │
-                 ▼                      ▼
-        ┌─────────────────┐      WebRTC / 叠框预览
-        │  接入层 Ingest  │      （不在 300ms 链路上）
-        │  NVDEC 硬解     │
-        │  去畸变         │
-        │  帧环形缓冲     │
-        │  过期帧丢弃     │
-        └────────┬────────┘
+                    海康摄像头（多路，现场默认 6 路）
+                           │ 每台主码流只被拉一次
+                           ▼
+              ┌─────────────────────────────┐
+              │ MediaMTX（与算法同机）        │
+              │ 透传、小队列、对海康重连       │
+              │ 本机 rtsp://127.0.0.1:8554/id │
+              └──────────┬──────────────────┘
+                         │
+           ┌─────────────┴──────────────┐
+           ▼                            ▼
+┌─────────────────┐            子码流 path（按需）
+│ 接入层 Ingest    │            → WebRTC / 8081 叠框
+│ 对本机 RTSP 重连  │              （不在 300ms 链路上）
+│ NVDEC / OpenCV   │
+│ 去畸变、最新帧    │
+└────────┬────────┘
                  │ 共享内存帧 + camera_id + 采集时间戳 + 该路标定句柄
                  │
         ┌────────┴─────────────────────────┐
@@ -98,10 +100,12 @@
 
 要点：
 
-- **预览和算法拆路。** MediaMTX 只服务预览，避免再编码/缓冲吃掉 300ms。算法路径直拉主码流。
+- **MediaMTX 与算法同机，作拉流中转。** 海康断网再联网时由中转重建会话；算法只拉 `127.0.0.1`。必须透传、禁止转码，`writeQueueSize` 保持较小并压测 300ms。
+- **ingest 仍要对本机 RTSP 重连。** 中转空窗时不得握死旧 `VideoCapture`。
 - **一次解码，两条流水线共享帧。** 不拉四路流，不解码四次。
 - **四个算法仍是四个插件目录**，但运行时按 DAG 组成两条链，不靠事后 IoU 猜是不是同一个目标。
 - **测距、高度是量测器，不是检测器。** 输入里必须带上游检出的目标和标定。
+- **真实画面一律进 MediaMTX，ingest 只拉本机 RTSP。** 海康由中转拉取；本机 USB 由 FFmpeg 推入（`scripts/start.sh --webcam`）。`source: synthetic` 仅单测。禁止 `source: webcam` 直采。
 
 ---
 
@@ -127,7 +131,7 @@
 2. **带采集时间戳。** 推理开始前若 `now - capture_ts > 200ms`，该帧直接丢，记过期计数。
 3. **两条流水线并行。** 人车链和障碍物链同时跑；链内检测 → 跟踪 → 量测必须串行（量测依赖框）。
 4. **上报异步。** `await` 后端不能拖住推理循环；300ms 统计点是「请求已发出」（本网时延通常远小于 30ms）。
-5. **不要用默认 MediaMTX 做算法输入。** 默认 GOP/缓冲经常单独超过 300ms。
+5. **MediaMTX 必须透传、小队列。** 禁止用默认大缓冲/转码当算法源；延迟超标先减 `writeQueueSize` 或查 GOP，而不是加长 ingest 队列。
 
 若压测单路检测就 > 80ms：先降推理分辨率/加 ROI/上 TensorRT，而不是加大缓冲。
 
@@ -401,6 +405,8 @@ mccbts-rail-vision/
 │   └── algorithms/plugin-guide.md
 ├── config/
 │   ├── cameras.yaml
+│   ├── cameras.rtsp.example.yaml    # 现场 6 路 + 本机中转地址
+│   ├── mediamtx.yml                 # 同机拉流中转（透传）
 │   ├── algorithms.yaml
 │   ├── pipelines.yaml
 │   ├── system.yaml
@@ -461,15 +467,16 @@ mccbts-rail-vision/
 cameras:
   - id: cam01
     name: 北侧铁轨-1号机
-    rtsp_main: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
-    rtsp_sub:  rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
+    source: rtsp
+    rtsp_camera: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
+    rtsp_main: rtsp://127.0.0.1:8554/cam01
     width: 1920
     height: 1080
     target_fps: 10
     calib_dir: config/calib/cam01
 ```
 
-算法只用 `rtsp_main`。`rtsp_sub` 给 MediaMTX 预览。
+ingest 只用 `rtsp_main`（本机中转）。海康真实地址写在 `config/mediamtx.yml` 对应 path 的 `source`（可与 `rtsp_camera` 保持一致便于对照）。完整 6 路见 `config/cameras.rtsp.example.yaml`。
 
 ### `config/algorithms.yaml`
 
@@ -556,11 +563,11 @@ main
 
 ## 12. 预览、健康、部署
 
-**预览：** MediaMTX 拉子码流；预览服务把最近一次检测框画上去（允许 0.5～1s 延迟）。验收看预览，后端看事件。
+**预览：** 叠框走进程内 `http://127.0.0.1:8081/preview`（旁路）。MediaMTX WebRTC（8889）可给人看子码流，不计入 300ms。
 
-**健康：** 进程心跳、RTSP 状态、过期丢帧率、标定状态。丢帧率持续高说明 300ms 预算不够，要降负载而不是加队列。
+**健康：** 进程心跳、RTSP 重连日志、过期丢帧率、标定状态。丢帧率持续高说明 300ms 预算不够，要降负载而不是加队列。
 
-**部署：** 算法服务器 Docker（NVIDIA runtime）+ 宿主机或 sidecar MediaMTX。现有后端独立。GPU 与相机网段要稳定，RTSP 走内网。
+**部署：** 算法服务器上 **MediaMTX 与 rail-vision 同机**（compose 默认一起起）。Linux 现场若容器访问不到相机，用 `docker-compose.field.yml` 走 host 网络。现有后端独立。
 
 ---
 
@@ -589,7 +596,7 @@ main
 | 算法输入含「已去畸变」但未规定谁做 | ingest 统一去畸变 |
 | 只有内参 + 单应 | 补外参、钢轨几何、meta、失效体检 |
 | 每帧 HTTP 上报 | 事件 + 心跳；变化立即发，满足 300ms |
-| 算法路径走 MediaMTX | 算法直拉主码流；MediaMTX 仅预览 |
+| 算法路径走默认 MediaMTX 转码 | 同机透传中转 + ingest 对本机 RTSP 重连；禁止转码 |
 | asyncio 里同步推理 | 推理在进程/线程；过期帧丢弃 |
 | 示例 640×480 | 算法 1080p |
 | `attributes` 自由字段 | 固定 `distance_to_track_m` / `height_m` |

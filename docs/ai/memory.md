@@ -20,9 +20,11 @@
 - 决策：整体按 `docs/architecture/system-design.md` 落地；四算法两条 DAG；供应商标定由框架加载。
 - 决策：端到端延迟 **< 300ms**（覆盖原先「1s 即可」的默认建议）。
 - 决策：算法直拉主码流；MediaMTX 仅预览。
+- 决策（修订）：现场 MediaMTX 与算法同机作拉流中转（透传）；ingest 对本机 RTSP 重连。工位海康与现场海康同一套接法。同事反馈：海康断网再联网直连有概率无法恢复。
 - 决策：距离 = 脚点/车底中心到最近钢轨的水平距离；默认预警 2.0m、危险 1.0m。
 - 决策：上报事件化 + 心跳；人车必须跟踪。
 - 范围：框架 `core/`、插件 `algorithms/`、配置 `config/`。
 - 例外：后端正式 URL / token、供应商标定精度、工务最终阈值待对接后只改配置。
-- 决策：本机可用 `source: webcam`；主进程预览 `http://127.0.0.1:8081/preview`。
+- 决策：主进程预览 `http://127.0.0.1:8081/preview`。
+- 决策（修订）：取消 `source: webcam`。本机 USB 经 FFmpeg → MediaMTX publisher → ingest 只拉 `127.0.0.1:8554`，与现场同一条 Python 链路。`bash scripts/start.sh --webcam`。合成源仅单测（`cameras.synthetic.yaml`）。
 - 决策：预览卡顿因整帧经 Manager/Queue pickle；改为 SharedMemory 传帧，检测结果走小 Queue。

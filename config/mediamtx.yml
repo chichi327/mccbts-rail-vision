@@ -1,0 +1,41 @@
+# MediaMTX：算法服务器上的拉流中转（透传、不转码）。
+# 相机断网再上线由本进程对海康重连；算法只拉本机 8554，避免 OpenCV 握死旧会话。
+# 现场把各 path 的 source 改成真实海康主码流。路径名必须与 cameras.yaml 的 id 一致。
+#
+# 官方镜像默认读 /mediamtx.yml。延迟：writeQueueSize 偏小；禁止在 path 上配 ffmpeg 转码。
+
+logLevel: warn
+readTimeout: 10s
+writeTimeout: 10s
+writeQueueSize: 64
+
+rtsp: yes
+rtspAddress: :8554
+rtspTransports: [tcp]
+
+rtmp: no
+hls: no
+webrtc: yes
+webrtcAddress: :8889
+srt: no
+
+pathDefaults:
+  sourceOnDemand: no
+  rtspTransport: tcp
+
+paths:
+  cam01:
+    source: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/101
+  cam02:
+    source: rtsp://user:pass@192.168.1.65:554/Streaming/Channels/101
+  cam03:
+    source: rtsp://user:pass@192.168.1.66:554/Streaming/Channels/101
+  cam04:
+    source: rtsp://user:pass@192.168.1.67:554/Streaming/Channels/101
+  cam05:
+    source: rtsp://user:pass@192.168.1.68:554/Streaming/Channels/101
+  cam06:
+    source: rtsp://user:pass@192.168.1.69:554/Streaming/Channels/101
+  cam01_sub:
+    source: rtsp://user:pass@192.168.1.64:554/Streaming/Channels/102
+    sourceOnDemand: yes

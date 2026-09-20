@@ -1,7 +1,19 @@
 services:
+  mediamtx:
+    image: bluenviron/mediamtx:1.11.3
+    volumes:
+      - ./config/mediamtx.yml:/mediamtx.yml:ro
+    ports:
+      - "8554:8554"
+      - "8889:8889"
+    restart: unless-stopped
+    # 容器要能访问海康网段。Linux 现场若桥接不通，用 docker-compose.field.yml 的 host 网络。
+
   rail-vision:
     build: .
     image: mccbts-rail-vision:local
+    depends_on:
+      - mediamtx
     env_file:
       - .env
     volumes:
@@ -9,15 +21,10 @@ services:
       - ./data:/app/data
     ports:
       - "8080:8080"
+      - "8081:8081"
     restart: unless-stopped
     runtime: nvidia
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       NVIDIA_VISIBLE_DEVICES: all
-
-  mediamtx:
-    profiles: ["preview"]
-    image: bluenviron/mediamtx:latest
-    ports:
-      - "8554:8554"
-      - "8889:8889"
-    restart: unless-stopped

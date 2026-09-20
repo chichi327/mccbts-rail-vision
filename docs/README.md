@@ -13,6 +13,7 @@
 | 安装、启动、合成帧跑通 | [ops/getting-started.md](ops/getting-started.md) |
 | 后续要逐项确认的事 | [ops/follow-up-checklist.md](ops/follow-up-checklist.md) |
 | 手头摄像头验证架构通路 | [ops/verify-with-camera.md](ops/verify-with-camera.md) |
+| MediaMTX 拉流中转、断网恢复 | [ops/mediamtx.md](ops/mediamtx.md) |
 | Docker / 现场打包 | [ops/packaging.md](ops/packaging.md) |
 | 相机、标定、`.env`、YAML | [ops/configuration.md](ops/configuration.md) |
 | 系统怎么拆、延迟预算、两条 DAG | [architecture/system-design.md](architecture/system-design.md) |
@@ -37,6 +38,7 @@
 | [getting-started.md](ops/getting-started.md) | 开发/部署 | 安装、启动、健康检查 |
 | [follow-up-checklist.md](ops/follow-up-checklist.md) | 项目负责人 | 后端/相机/标定/业务/算法团队待确认项 |
 | [verify-with-camera.md](ops/verify-with-camera.md) | 开发 | USB 或 RTSP 验证拉流与流水线 |
+| [mediamtx.md](ops/mediamtx.md) | 部署 | 同机中转、透传、断网验收 |
 | [configuration.md](ops/configuration.md) | 开发/部署 | YAML、标定目录、密钥 |
 | [packaging.md](ops/packaging.md) | 部署 | 可编辑安装、Docker |
 
