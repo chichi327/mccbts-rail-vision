@@ -14,6 +14,7 @@
 | MediaMTX 现场中转 | [docs/ops/mediamtx.md](docs/ops/mediamtx.md) |
 | 打现场包、服务器 ./start.sh | [docs/ops/packaging.md](docs/ops/packaging.md) |
 | 相机 / 标定 / `.env` | [docs/ops/configuration.md](docs/ops/configuration.md) |
+| 给标定供应商（去畸变与交付） | [docs/ops/calibration-vendor.md](docs/ops/calibration-vendor.md) |
 | 整体架构（拍板文档） | [docs/architecture/system-design.md](docs/architecture/system-design.md) |
 | 这个目录是干什么的 | [docs/ai/architecture-map.md](docs/ai/architecture-map.md) |
 | 算法团队怎么接插件 | [docs/algorithms/plugin-guide.md](docs/algorithms/plugin-guide.md) |

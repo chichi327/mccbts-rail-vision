@@ -71,7 +71,7 @@
 - [ ] 地面坐标系下两条钢轨（或中心线）几何
 - [ ] 书面：以上均基于**去畸变图**；标定时分辨率
 - [ ] 距离/高度误差范围（验收用）
-- **落点**：`config/calib/<camera_id>/`；清单见 [configuration.md](configuration.md)
+- **落点**：`config/calib/<camera_id>/`；供应商说明 [calibration-vendor.md](calibration-vendor.md)
 - **我的结论**：
 
 ### C2. 单目高度是否承诺能算

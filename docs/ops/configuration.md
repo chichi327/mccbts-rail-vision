@@ -15,6 +15,8 @@
 | `.env` | 后端 URL、token（覆盖 system.yaml 中的占位） |
 | `config/calib/<camera_id>/` | 供应商标定 |
 
+供应商交付与去畸变复现步骤见 [calibration-vendor.md](calibration-vendor.md)（可直接转发）。
+
 ## 每路标定必须有
 
 | 文件 | 内容 |

@@ -16,6 +16,7 @@
 | MediaMTX 拉流中转、断网恢复 | [ops/mediamtx.md](ops/mediamtx.md) |
 | Docker / 现场打包 | [ops/packaging.md](ops/packaging.md) |
 | 相机、标定、`.env`、YAML | [ops/configuration.md](ops/configuration.md) |
+| 给标定供应商：去畸变怎么做、交哪些文件 | [ops/calibration-vendor.md](ops/calibration-vendor.md) |
 | 系统怎么拆、延迟预算、两条 DAG | [architecture/system-design.md](architecture/system-design.md) |
 | 这个目录谁维护、禁止做什么 | [ai/architecture-map.md](ai/architecture-map.md)（源：[ai/module-map.yaml](ai/module-map.yaml)） |
 | 上次拍板了什么、有哪些例外 | [ai/memory.md](ai/memory.md) |
@@ -40,6 +41,7 @@
 | [verify-with-camera.md](ops/verify-with-camera.md) | 开发 | 海康经 MediaMTX 验证拉流与流水线 |
 | [mediamtx.md](ops/mediamtx.md) | 部署 | 同机中转、透传、断网验收 |
 | [configuration.md](ops/configuration.md) | 开发/部署 | YAML、标定目录、密钥 |
+| [calibration-vendor.md](ops/calibration-vendor.md) | 标定供应商 | 去畸变 OpenCV 步骤、文件格式、还须交付什么 |
 | [packaging.md](ops/packaging.md) | 部署 | `package.sh` 打 field 包、现场 `./start.sh` |
 
 ### `docs/algorithms/` — 插件

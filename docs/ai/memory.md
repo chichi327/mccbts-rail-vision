@@ -50,3 +50,7 @@
 - 决策：按相机目录和分辨率缓存 `initUndistortRectifyMap`（`CV_16SC2`），每帧 `cv2.remap`。GPU remap 仍待（常见 OpenCV wheel 无 CUDA）。
 - 范围：`core/ingest/undistort.py`；约定禁止再走每帧 `undistort`。
 - 例外：标定无效则跳过，原图进流水线。
+
+- 决策：供应商标定与去畸变说明以 `docs/ops/calibration-vendor.md` 为准，可直接转发。含 OpenCV 复现步骤（`alpha=0`、不裁 ROI、全图 remap）、五文件格式、供应商待办与我方未做项（GPU remap、`calib_stale`、不解析 `rpy_rad`）。
+- 范围：该文档及 `docs/README.md`、根 README、`configuration.md`、system-design 第 7/13 节、follow-up C1。
+- 例外：示例 `config/calib/cam01` 不能当现场精度。

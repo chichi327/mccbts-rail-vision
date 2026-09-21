@@ -290,7 +290,8 @@ class CalibView(ABC):
 
 ## 7. 供应商标定
 
-按**相机**一套文件，放 `config/calib/<camera_id>/`。
+按**相机**一套文件，放 `config/calib/<camera_id>/`。给供应商看的去畸变复现步骤、npz 字段和待办清单：[calibration-vendor.md](../ops/calibration-vendor.md)。
+
 
 | 文件/内容 | 用途 | 是否必须 |
 |-----------|------|----------|
@@ -599,7 +600,7 @@ main
 | 测距团队 | `algorithms/track_distance`，实现 `BaseEstimator`，用人车框 + `CalibView` |
 | 障碍物团队 | `algorithms/obstacle_detect`，实现 `BaseDetector`，类别不含人车 |
 | 高度团队 | `algorithms/obstacle_height`，实现 `BaseEstimator` |
-| 供应商 | 第 7 节文件 + 误差说明 + 去畸变图约定 |
+| 供应商 | 第 7 节文件 + 误差说明 + 去畸变图约定（见 [calibration-vendor.md](../ops/calibration-vendor.md)） |
 | 后端 | events / heartbeat 接口、鉴权、幂等（按 `event_id`） |
 
 联调顺序：单路拉流 → 去畸变画面 → 人车框 → 测距数字 → 事件 POST → 障碍物链 → 多路压测延迟。
