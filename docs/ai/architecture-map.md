@@ -8,7 +8,7 @@
 | 路径 | 角色 | 维护方 | 职责 | 禁止 |
 |------|------|--------|------|------|
 | `core/base` | 框架 | 框架团队 | Detection、BaseDetector、BaseEstimator 统一接口 | 在插件里复制一份结果类型 |
-| `core/ingest` | 接入 | 框架团队 | 本机 MediaMTX RTSP 拉流、合成源单测、去畸变、共享内存最新帧 | 跑模型、读业务阈值 |
+| `core/ingest` | 接入 | 框架团队 | 本机 MediaMTX RTSP 拉流、去畸变、共享内存最新帧 | 跑模型、读业务阈值 |
 | `core/calib` | 标定 | 框架团队 | 加载供应商文件，提供 CalibView 几何 API | 算法目录自行解析 npz |
 | `core/runtime` | 调度 | 框架团队 | 加载插件、DAG 流水线进程、过期丢帧 | 写死某个模型类名（必须走配置） |
 | `core/track` | 跟踪 | 框架团队 | 为人车（及障碍物）补 object_id | 修改检测类别 |
@@ -22,7 +22,7 @@
 | `algorithms/obstacle_height` | 量测器插件 | 高度团队 | 用障碍物框 + CalibView 补 height_m | 自己再跑检测 |
 | `config` | 配置 | 部署/框架 | 相机、算法、流水线、系统阈值、标定、MediaMTX 中转 yml | 把密钥提交进 git（用 .env） |
 | `services` | 辅助进程 | 框架团队 | 预览 HTTP、健康检查入口 | 塞进算法逻辑 |
-| `scripts` | 工具 | 框架团队 | 启动、打包、文档同步、单路调试 | 作为生产常驻进程 |
+| `scripts` | 工具 | 框架团队 | 启动、停止、打包、文档同步、单路调试 | 作为生产常驻进程 |
 | `deploy/field` | 部署 | 框架团队 | 现场发布包模板（host 网络 compose、启停脚本） | 把密钥写进模板；在开发仓库根直接当日常 compose 用 |
 | `docs` | 文档 | 全员 | 文档索引 README.md；人和 AI 按意图查找 | 新增 docs 下 md 却不写入 README 索引 |
 | `docs/architecture` | 文档 | 全员 | 拍板后的系统架构 | 与代码长期不一致还不改 memory/map |

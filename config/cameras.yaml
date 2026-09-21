@@ -1,9 +1,10 @@
+# ingest 只拉本机 MediaMTX。海康账号和 IP 写在 mediamtx.yml，不要写到这里。
 cameras:
   - id: cam01
-    name: 经本机 MediaMTX（海康或 FFmpeg 推流）
+    name: 工位海康
     source: rtsp
     rtsp_main: rtsp://127.0.0.1:8554/cam01
-    width: 1280
-    height: 720
-    target_fps: 15
+    width: 1920
+    height: 1080
+    target_fps: 10
     calib_dir: config/calib/cam01

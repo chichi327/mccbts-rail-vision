@@ -35,3 +35,9 @@
 - 决策：心跳必须能区分相机断流、人车/障碍物流水线崩溃、标定失效；与「没人」无关。故障打 `HEALTH_FAULT`，恢复打 `HEALTH_RECOVER`。一条流水线退出不拉停另一条。
 - 范围：`core/health`、心跳 JSON、`GET /health`、ingest/pipeline 日志。
 - 例外：后端如何展示这些字段仍待对接。
+
+## 2026-09-21
+
+- 决策：去掉 USB webcam 与合成源。ingest 只保留 `source: rtsp`（本机 MediaMTX）。无 `start.sh --webcam`、无 `cameras.synthetic.yaml`。
+- 范围：`core/ingest/sources.py`、`scripts/start.sh`、删除 `config/mediamtx.webcam.yml`、`scripts/publish_webcam.sh`、`config/cameras.synthetic.yaml`；文档入口与约定。
+- 例外：`pytest` 不连海康；真码流验证用 MediaMTX + `main.py`。6 路模板仍是 `cameras.rtsp.example.yaml`。

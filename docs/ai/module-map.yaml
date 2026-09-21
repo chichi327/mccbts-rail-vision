@@ -12,7 +12,7 @@ modules:
   - path: core/ingest
     role: 接入
     owner: 框架团队
-    purpose: 本机 MediaMTX RTSP 拉流、合成源单测、去畸变、共享内存最新帧
+    purpose: 本机 MediaMTX RTSP 拉流、去畸变、共享内存最新帧
     forbidden: 跑模型、读业务阈值
 
   - path: core/calib
@@ -96,7 +96,7 @@ modules:
   - path: scripts
     role: 工具
     owner: 框架团队
-    purpose: 启动、打包、文档同步、单路调试
+    purpose: 启动、停止、打包、文档同步、单路调试
     forbidden: 作为生产常驻进程
 
   - path: deploy/field

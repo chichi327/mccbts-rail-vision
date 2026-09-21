@@ -12,13 +12,13 @@ def snapshot_live(
     det_boxes: dict[str, dict[str, LatestFrameMailbox]],
     det_cache: dict[tuple[str, str], list[Detection]],
     camera_id: str,
-) -> tuple[Any, list[Detection]]:
+) -> tuple[Any, list[Detection], int]:
     buf = buffers.get(camera_id)
     if buf is None:
-        return None, []
+        return None, [], 0
     frame, _ts, seq = buf.read_copy()
     if frame is None or seq <= 0:
-        return None, []
+        return None, [], 0
     for pipe_id, per_cam in det_boxes.items():
         box = per_cam.get(camera_id)
         if box is None:
@@ -29,4 +29,4 @@ def snapshot_live(
     merged: list[Detection] = []
     for pipe_id in det_boxes:
         merged.extend(det_cache.get((camera_id, pipe_id)) or [])
-    return frame, merged
+    return frame, merged, seq

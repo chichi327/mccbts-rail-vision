@@ -18,16 +18,31 @@
 | 这个目录是干什么的 | [docs/ai/architecture-map.md](docs/ai/architecture-map.md) |
 | 算法团队怎么接插件 | [docs/algorithms/plugin-guide.md](docs/algorithms/plugin-guide.md) |
 
-最短路径：
+最短路径：先改 `config/mediamtx.yml` 海康 `source`。Docker 起中转两边相同：`docker compose up -d mediamtx`。
+
+macOS / Linux：
 
 ```bash
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 cp .env.example .env
 python scripts/gen_sample_calib.py
-# 本机 USB（FFmpeg → MediaMTX → ingest）
-bash scripts/start.sh --webcam
-# 现场/工位海康：先 docker compose up -d mediamtx，再 bash scripts/start.sh
+docker compose up -d mediamtx
+bash scripts/start.sh
+# 停：bash scripts/stop.sh
+```
+
+Windows：
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+Copy-Item .env.example .env
+python scripts\gen_sample_calib.py
+docker compose up -d mediamtx
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1
+# 停：powershell -ExecutionPolicy Bypass -File scripts\stop.ps1
 ```
 
 健康检查：`http://127.0.0.1:8080/health`。有码流后预览：`http://127.0.0.1:8081/preview`。
@@ -43,5 +58,5 @@ bash scripts/start.sh --webcam
                 ├─ 流水线 person_vehicle：检测 → 跟踪 → 距
                 └─ 流水线 obstacle：检测 → 跟踪 → 高度
                         → 事件 → HTTP 上报
-叠框预览 8081（旁路）；本机 USB 也经 MediaMTX，与现场同一条 ingest
+叠框预览 8081（旁路，不计入 300ms）
 ```

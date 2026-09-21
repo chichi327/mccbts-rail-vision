@@ -14,7 +14,7 @@ system:
   backend:
     events_url: http://backend/api/vision/events
     heartbeat_url: http://backend/api/vision/heartbeat
-    token: ""
+    token: ''
     post_timeout_ms: 100
     retry_queue_size: 1000
   preview:

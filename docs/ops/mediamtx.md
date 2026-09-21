@@ -2,18 +2,7 @@
 
 现场默认：MediaMTX 与算法 **同一台服务器**；算法只拉本机 RTSP。原因：直连海康时，相机断网再联网有概率码流恢复不了。
 
-Python ingest **只有这一条真实路径**。本机 USB 用 FFmpeg 推到 `config/mediamtx.webcam.yml`（`source: publisher`），海康由 `config/mediamtx.yml` 拉取。无相机单测才用 `config/cameras.synthetic.yaml`。
-
-## 本机 USB（与现场同一条 ingest）
-
-不要改 `cameras.yaml` 去直采设备。停掉占用 8554 的现场 compose 后：
-
-```bash
-brew install ffmpeg   # 若尚未安装
-bash scripts/start.sh --webcam
-```
-
-`WEBCAM_DEVICE` 默认 `0`。macOS 默认推 **30fps**（15 常被 avfoundation 拒绝）。Ctrl+C 会停 FFmpeg 和临时 MediaMTX 容器。推流失败时 ingest 会对 `cam01` 报 404，预览没有画面。
+Python ingest **只有这一条路径**：拉 `config/cameras.yaml` 里的 `rtsp_main`（本机 `8554/<id>`）。海康真实地址写在 `config/mediamtx.yml` 对应 path 的 `source`。
 
 ## 本机只接一台海康
 
@@ -36,24 +25,31 @@ cameras:
 
 4. 先起中转再起算法：
 
+macOS / Linux：
+
 ```bash
 docker compose up -d mediamtx
-# 或: mediamtx config/mediamtx.yml
-source .venv/bin/activate
 bash scripts/start.sh
 ```
 
-预览仍是 `http://127.0.0.1:8081/preview`。Mac 上 Docker 桥接若拉不到相机，用本机安装的 `mediamtx` 二进制，或保证容器能访问相机网段。
+Windows：
+
+```powershell
+docker compose up -d mediamtx
+powershell -ExecutionPolicy Bypass -File scripts\start.ps1
+```
+
+本机已装 `mediamtx` 二进制时也可：`mediamtx config/mediamtx.yml` 再启动算法。
+
+预览仍是 `http://127.0.0.1:8081/preview`。Mac / Windows 上 Docker 桥接若拉不到相机，用本机安装的 `mediamtx` 二进制，或保证容器能访问相机网段。
 
 ## 配置
 
 | 文件 | 作用 |
 |------|------|
-| `config/mediamtx.yml` | 现场/工位：每路 `paths.<id>.source` = 海康主码流；**不要配 ffmpeg 转码** |
-| `config/mediamtx.webcam.yml` | 本机 USB：`cam01` 为 `publisher`，配合 `bash scripts/start.sh --webcam` |
-| `config/cameras.rtsp.example.yaml` | 6 路示例：`rtsp_main` 指向 `rtsp://127.0.0.1:8554/<id>` |
+| `config/mediamtx.yml` | 每路 `paths.<id>.source` = 海康主码流；**不要配 ffmpeg 转码** |
 | `config/cameras.yaml` | ingest 实际读取的列表（只拉 8554） |
-| `config/cameras.synthetic.yaml` | 无硬件单测，不是第二种摄像头接入 |
+| `config/cameras.rtsp.example.yaml` | 6 路示例：`rtsp_main` 指向 `rtsp://127.0.0.1:8554/<id>` |
 
 path 名必须等于相机 `id`。改海康地址时 **yml 与 example 一起改**。
 
@@ -65,11 +61,11 @@ Compose 里算法容器若走桥接网络，把 `rtsp_main` 改成 `rtsp://media
 mediamtx config/mediamtx.yml
 ```
 
-再 `bash scripts/start.sh`。
+再 `scripts\start.ps1` 或 `bash scripts/start.sh`。
 
 ## 延迟
 
-`writeQueueSize: 64` 偏小。验收：6 路事件链路仍要 <300ms。变卡先查是否误开转码/HLS，再减小队列，不要加长算法侧缓冲。
+`writeQueueSize: 32` 偏小。验收：6 路事件链路仍要 <300ms。变卡先查是否误开转码/HLS，再减小队列，不要加长算法侧缓冲。
 
 WebRTC 预览端口 8889（MediaMTX 自带）。叠框预览仍是 `http://127.0.0.1:8081/preview`。
 

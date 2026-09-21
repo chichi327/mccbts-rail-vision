@@ -7,7 +7,7 @@ alwaysApply: true
 
 - 流水线：人车检测 → 跟踪 → 测距；障碍物检测 → 跟踪 → 高度。量测依赖检测框。
 - 端到端事件 < 300ms。只保留最新帧；`drop_if_frame_age_ms` 超时丢帧。禁止加长队列抗延迟。
-- 算法只拉 **同机 MediaMTX 透传 RTSP**。海康由中转拉取；本机 USB 经 FFmpeg 推入同一中转。禁止 `source: webcam`。
+- 算法只拉 **同机 MediaMTX 透传 RTSP**。海康由中转拉取。ingest 只有 `source: rtsp`。
 - 人车不是 obstacle。检测器不算物理量；量测器不准再检一套框。
 - 上报状态变化事件 + 独立心跳，禁止每帧全量 POST。
 - `core/` 框架团队维护；算法团队只改 `algorithms/<自己的目录>/`。

@@ -155,7 +155,7 @@
 ### F1. 预览与拉流中转
 
 - [x] 本地叠框：`http://127.0.0.1:8081/preview`
-- [x] MediaMTX 与算法同机：透传拉海康、ingest 对本机 RTSP 重连；本机 USB 走 FFmpeg publisher，无第二套 ingest（见 [mediamtx.md](mediamtx.md)）
+- [x] MediaMTX 与算法同机：透传拉海康、ingest 对本机 RTSP 重连（见 [mediamtx.md](mediamtx.md)）
 - [ ] 6 路真实地址写入 `mediamtx.yml` 后做断网再联网恢复验收，并确认事件仍 <300ms
 - **我的结论**：
 

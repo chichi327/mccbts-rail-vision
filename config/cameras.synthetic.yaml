@@ -1,9 +1,0 @@
-# 无 MediaMTX、无相机时的单测/脚本。不是第二种摄像头接入。
-cameras:
-  - id: cam01
-    name: synthetic
-    source: synthetic
-    width: 1280
-    height: 720
-    target_fps: 15
-    calib_dir: config/calib/cam01

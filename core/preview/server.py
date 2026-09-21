@@ -64,37 +64,42 @@ def serve_preview(
 
         def _mjpeg(self, camera_id: str) -> None:
             self.send_response(200)
-            self.send_header("Cache-Control", "no-cache")
+            self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+            self.send_header("Pragma", "no-cache")
             self.send_header("Content-Type", "multipart/x-mixed-replace; boundary=frame")
             self.end_headers()
+            last_seq = -1
             last_sent = 0.0
             min_interval = 1.0 / 20.0
             try:
                 while not stop_event.is_set():
+                    frame, dets, seq = snapshot_live(buffers, det_boxes, det_cache, camera_id)
+                    if frame is None or seq == last_seq:
+                        time.sleep(0.005)
+                        continue
                     now = time.time()
                     wait = min_interval - (now - last_sent)
                     if wait > 0:
                         time.sleep(wait)
-                    frame, dets = snapshot_live(buffers, det_boxes, det_cache, camera_id)
-                    if frame is None:
-                        time.sleep(0.01)
                         continue
                     vis = annotate_frame(frame, dets)
                     h, w = vis.shape[:2]
                     if w > max_width:
                         nh = int(h * max_width / w)
                         vis = cv2.resize(vis, (max_width, nh))
-                    ok, buf = cv2.imencode(".jpg", vis, [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
+                    ok, encoded = cv2.imencode(".jpg", vis, [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
                     if not ok:
                         continue
-                    jpg = buf.tobytes()
+                    jpg = encoded.tobytes()
                     self.wfile.write(b"--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ")
                     self.wfile.write(str(len(jpg)).encode("ascii"))
                     self.wfile.write(b"\r\n\r\n")
                     self.wfile.write(jpg)
                     self.wfile.write(b"\r\n")
+                    self.wfile.flush()
+                    last_seq = seq
                     last_sent = time.time()
-            except (BrokenPipeError, ConnectionResetError):
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError, OSError):
                 return
 
         def log_message(self, fmt, *args):

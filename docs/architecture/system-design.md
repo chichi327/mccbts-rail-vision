@@ -105,7 +105,7 @@
 - **一次解码，两条流水线共享帧。** 不拉四路流，不解码四次。
 - **四个算法仍是四个插件目录**，但运行时按 DAG 组成两条链，不靠事后 IoU 猜是不是同一个目标。
 - **测距、高度是量测器，不是检测器。** 输入里必须带上游检出的目标和标定。
-- **真实画面一律进 MediaMTX，ingest 只拉本机 RTSP。** 海康由中转拉取；本机 USB 由 FFmpeg 推入（`scripts/start.sh --webcam`）。`source: synthetic` 仅单测。禁止 `source: webcam` 直采。
+- **真实画面一律进 MediaMTX，ingest 只拉本机 RTSP。** 海康由中转拉取。ingest 只有 `source: rtsp`。
 
 ---
 
