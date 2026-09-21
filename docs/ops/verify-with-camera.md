@@ -85,6 +85,8 @@ open preview http://127.0.0.1:8081/preview
 
 关预览：`config/system.yaml` 里 `preview.enabled: false`。
 
+看算法耗时：把 `system.timing.enabled` 改成 `true`（或 `.env` 里 `TIMING_ENABLED=true`），日志会出现 `timing camera=... detect_ms=... e2e_ms=...` 和 `timing ingest ...`。现场关掉。
+
 ---
 
 ## 3. 最小验证（可选）：单帧抓拍

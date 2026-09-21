@@ -15,6 +15,7 @@ from core.ingest.shm_frame import SharedFrameBuffer
 from core.logger import setup_logging
 from core.runtime.config import load_app_config
 from core.runtime.pipeline import run_pipeline
+from core.runtime.timing import timing_enabled, timing_log_every_n
 from services.health_check import health_snapshot
 from services.preview_server import start_preview_thread
 
@@ -59,11 +60,21 @@ def main() -> None:
         process_alive[pipe["id"]] = True
 
     ingest_threads: list[threading.Thread] = []
+    do_timing = timing_enabled(cfg.system)
+    timing_every = timing_log_every_n(cfg.system)
     for cam in cfg.cameras:
         thread = threading.Thread(
             name=f"ingest-{cam['id']}",
             target=run_ingest,
-            args=(cam, frame_bufs[cam["id"]], cam["calib_dir"], stop, log_level),
+            args=(
+                cam,
+                frame_bufs[cam["id"]],
+                cam["calib_dir"],
+                stop,
+                log_level,
+                do_timing,
+                timing_every,
+            ),
             daemon=True,
         )
         ingest_threads.append(thread)

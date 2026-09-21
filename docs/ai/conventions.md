@@ -4,9 +4,11 @@
 
 - 事件链路端到端 **< 300ms**（采集完成 → HTTP 请求已发出）
 - 帧年龄 `> drop_if_frame_age_ms`（默认 200）必须丢弃
+- 耗时埋点默认关（`system.timing.enabled` / `TIMING_ENABLED`）；打开后打 `timing` 日志，现场保持关闭
 - 算法只拉 **同机 MediaMTX 透传** 地址；禁止经 MediaMTX **转码**或默认大缓冲当算法源
 - ingest 只有 `source: rtsp`（本机 MediaMTX）；禁止 webcam / synthetic / 直连海康
 - 禁止用加长队列「扛延迟」
+- 去畸变必须缓存 `initUndistortRectifyMap`，每帧只 `remap`；禁止每帧 `cv2.undistort` 重建映射表
 
 ## 算法插件
 

@@ -41,3 +41,12 @@
 - 决策：去掉 USB webcam 与合成源。ingest 只保留 `source: rtsp`（本机 MediaMTX）。无 `start.sh --webcam`、无 `cameras.synthetic.yaml`。
 - 范围：`core/ingest/sources.py`、`scripts/start.sh`、删除 `config/mediamtx.webcam.yml`、`scripts/publish_webcam.sh`、`config/cameras.synthetic.yaml`；文档入口与约定。
 - 例外：`pytest` 不连海康；真码流验证用 MediaMTX + `main.py`。6 路模板仍是 `cameras.rtsp.example.yaml`。
+
+- 决策：可选耗时埋点，默认关。`config/system.yaml` 的 `timing.enabled` / `log_every_n`；环境变量 `TIMING_ENABLED` 可覆盖。日志前缀 `timing`（ingest 的 read/undistort/write；流水线的 detect/track/estimate/total/e2e）。`e2e_ms` 从 ingest 打戳到本帧处理完，不含海康编码。现场关闭以免刷日志。
+- 范围：`core/runtime/timing.py`、`pipeline.py`、`core/ingest/loop.py`、`main.py`、`config/system.yaml`、`.env.example`。
+- 例外：不写入事件 JSON；预览编码不计入这条埋点。
+
+- 现象（工位 timing）：`undistort_ms≈96`，流水线 `age_ms`/`e2e_ms≈110`，假检测 `detect_ms≈0`。根因是每帧 `getOptimalNewCameraMatrix` + `cv2.undistort` 重建 1080p 映射表，不是算法慢。
+- 决策：按相机目录和分辨率缓存 `initUndistortRectifyMap`（`CV_16SC2`），每帧 `cv2.remap`。GPU remap 仍待（常见 OpenCV wheel 无 CUDA）。
+- 范围：`core/ingest/undistort.py`；约定禁止再走每帧 `undistort`。
+- 例外：标定无效则跳过，原图进流水线。

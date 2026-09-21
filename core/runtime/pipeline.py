@@ -15,6 +15,7 @@ from core.ingest.packet import FramePacket
 from core.ingest.shm_frame import SharedFrameBuffer
 from core.logger import setup_logging
 from core.runtime.loader import load_pipeline_steps
+from core.runtime.timing import timing_enabled, timing_log_every_n
 from core.track.iou_tracker import IoUTracker
 
 log = logging.getLogger(__name__)
@@ -39,19 +40,33 @@ def run_pipeline(
     setup_logging(str(system.get("log_level", "INFO")))
     steps = load_pipeline_steps(step_names, algorithms)
     store = CalibStore()
-    bufs = {cam_id: SharedFrameBuffer(**kwargs) for cam_id, kwargs in frame_buf_args.items()}
+    bufs = {
+        cam_id: SharedFrameBuffer(**kwargs) for cam_id, kwargs in frame_buf_args.items()
+    }
     for cam in cameras:
         store.load_camera(cam["id"], cam["calib_dir"])
-    trackers = {cam["id"]: IoUTracker(prefix=f"{cam['id']}-{pipeline_id}") for cam in cameras}
+    trackers = {
+        cam["id"]: IoUTracker(prefix=f"{cam['id']}-{pipeline_id}") for cam in cameras
+    }
     eventer = Eventer(
         warning_m=float(system.get("warning_distance_m", 2.0)),
         danger_m=float(system.get("danger_distance_m", 1.0)),
     )
     drop_age = int(system.get("drop_if_frame_age_ms", 200))
+    max_e2e = int(system.get("max_e2e_ms", 300))
+    do_timing = timing_enabled(system)
+    every_n = timing_log_every_n(system)
+    timed_frames = 0
     dropped = 0
     last_seq = {cam["id"]: -1 for cam in cameras}
     logged_invalid_calib: set[str] = set()
-    log.info("pipeline start id=%s steps=%s", pipeline_id, step_names)
+    log.info(
+        "pipeline start id=%s steps=%s timing=%s every_n=%s",
+        pipeline_id,
+        step_names,
+        do_timing,
+        every_n if do_timing else 0,
+    )
     try:
         while not stop_event.is_set():
             progressed = False
@@ -83,10 +98,18 @@ def run_pipeline(
                 )
                 detections: list[Detection] = []
                 calib = store.view(packet.camera_id)
+                t0 = time.perf_counter() if do_timing else 0.0
+                detect_ms = track_ms = estimate_ms = 0.0
                 for step in steps:
                     if isinstance(step, BaseDetector):
+                        t_step = time.perf_counter() if do_timing else 0.0
                         detections = step.infer(packet.frame_bgr, packet.camera_id)
+                        if do_timing:
+                            detect_ms += (time.perf_counter() - t_step) * 1000
+                            t_step = time.perf_counter()
                         detections = trackers[packet.camera_id].update(detections)
+                        if do_timing:
+                            track_ms += (time.perf_counter() - t_step) * 1000
                     elif isinstance(step, BaseEstimator):
                         if not calib.valid:
                             if cam_id not in logged_invalid_calib:
@@ -99,11 +122,39 @@ def run_pipeline(
                                 )
                                 logged_invalid_calib.add(cam_id)
                             continue
+                        t_step = time.perf_counter() if do_timing else 0.0
                         detections = step.estimate(
                             packet.frame_bgr, packet.camera_id, detections, calib
                         )
+                        if do_timing:
+                            estimate_ms += (time.perf_counter() - t_step) * 1000
                 det_boxes[cam_id].publish(detections)
-                events = eventer.feed(packet.camera_id, packet.capture_ts_ms, detections)
+                events = eventer.feed(
+                    packet.camera_id, packet.capture_ts_ms, detections
+                )
+                if do_timing:
+                    timed_frames += 1
+                    if timed_frames % every_n == 0:
+                        total_ms = (time.perf_counter() - t0) * 1000
+                        e2e_ms = now_ms() - ts_ms
+                        line = (
+                            "timing camera=%s pipeline=%s age_ms=%s detect_ms=%.1f "
+                            "track_ms=%.1f estimate_ms=%.1f total_ms=%.1f e2e_ms=%s"
+                        )
+                        args = (
+                            cam_id,
+                            pipeline_id,
+                            age,
+                            detect_ms,
+                            track_ms,
+                            estimate_ms,
+                            total_ms,
+                            e2e_ms,
+                        )
+                        if e2e_ms > max_e2e:
+                            log.warning(line + " over_max_e2e=%s", *args, max_e2e)
+                        else:
+                            log.info(line, *args)
                 for ev in events:
                     log.info(
                         "event camera=%s type=%s dist=%s height=%s",

@@ -3,6 +3,10 @@ system:
   log_level: INFO
   max_e2e_ms: 300
   drop_if_frame_age_ms: 200
+  # 耗时埋点。现场保持 false；压测延迟改 true 或环境变量 TIMING_ENABLED=true
+  timing:
+    enabled: true
+    log_every_n: 30
   frame_slot_depth: 2
   warning_distance_m: 2.0
   danger_distance_m: 1.0

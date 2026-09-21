@@ -8,9 +8,9 @@
 | 路径 | 角色 | 维护方 | 职责 | 禁止 |
 |------|------|--------|------|------|
 | `core/base` | 框架 | 框架团队 | Detection、BaseDetector、BaseEstimator 统一接口 | 在插件里复制一份结果类型 |
-| `core/ingest` | 接入 | 框架团队 | 本机 MediaMTX RTSP 拉流、去畸变、共享内存最新帧 | 跑模型、读业务阈值 |
+| `core/ingest` | 接入 | 框架团队 | 本机 MediaMTX RTSP 拉流、缓存 remap 去畸变、共享内存最新帧 | 跑模型、读业务阈值 |
 | `core/calib` | 标定 | 框架团队 | 加载供应商文件，提供 CalibView 几何 API | 算法目录自行解析 npz |
-| `core/runtime` | 调度 | 框架团队 | 加载插件、DAG 流水线进程、过期丢帧 | 写死某个模型类名（必须走配置） |
+| `core/runtime` | 调度 | 框架团队 | 加载插件、DAG 流水线进程、过期丢帧、可选耗时日志 | 写死某个模型类名（必须走配置） |
 | `core/track` | 跟踪 | 框架团队 | 为人车（及障碍物）补 object_id | 修改检测类别 |
 | `core/event` | 事件 | 框架团队 | 预警/危险进出、障碍物出现消失 | 直接调模型 |
 | `core/report` | 上报 | 框架团队 | HTTP POST 后端、超时、本地重试队列 | 改变算法语义或字段名 |

@@ -7,6 +7,8 @@ from typing import Any
 
 import yaml
 
+from core.runtime.timing import apply_timing_overrides
+
 
 @dataclass
 class AppConfig:
@@ -34,6 +36,7 @@ def load_app_config(config_dir: str | Path) -> AppConfig:
     backend["heartbeat_url"] = os.environ.get("BACKEND_HEARTBEAT_URL", backend.get("heartbeat_url", ""))
     backend["token"] = os.environ.get("BACKEND_TOKEN", backend.get("token", ""))
     system["backend"] = backend
+    apply_timing_overrides(system)
     return AppConfig(
         cameras=cameras,
         algorithms=algorithms,

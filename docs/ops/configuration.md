@@ -11,7 +11,7 @@
 | `config/mediamtx.yml` | MediaMTX：海康 `source`、透传、小队列 |
 | `config/algorithms.yaml` | 插件开关、模块路径、算法私有参数 |
 | `config/pipelines.yaml` | 两条 DAG：人车链、障碍物链 |
-| `config/system.yaml` | GPU、300ms 相关阈值、健康端口、预览、心跳周期、断流判定 `camera_offline_after_ms` |
+| `config/system.yaml` | GPU、300ms 相关阈值、耗时埋点 `timing`、健康端口、预览、心跳周期、断流判定 `camera_offline_after_ms` |
 | `.env` | 后端 URL、token（覆盖 system.yaml 中的占位） |
 | `config/calib/<camera_id>/` | 供应商标定 |
 
@@ -31,4 +31,4 @@
 
 ## 环境变量
 
-见 `.env.example`。启动时 `core` 会用环境变量覆盖 `system.backend.*`。
+见 `.env.example`。启动时 `core` 会用环境变量覆盖 `system.backend.*`。`TIMING_ENABLED` 非空时覆盖 `system.timing.enabled`（`true`/`1`/`yes`/`on` 打开）。打开后每隔 `timing.log_every_n` 帧打 `timing` 日志；现场保持关闭。

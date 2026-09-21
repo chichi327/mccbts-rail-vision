@@ -1,0 +1,60 @@
+from pathlib import Path
+
+import numpy as np
+import yaml
+
+from core.calib.view import FileCalibView, InvalidCalibView
+from core.ingest.undistort import (
+    clear_undistort_maps,
+    undistort_bgr,
+    undistort_map_cache_size,
+)
+
+
+def _write_sample(dirpath: Path) -> None:
+    dirpath.mkdir(parents=True)
+    np.savez(dirpath / "camera.npz", K=np.eye(3), dist=np.zeros(5))
+    np.savez(
+        dirpath / "extrinsics.npz",
+        R=np.eye(3),
+        t=np.array([0.0, 0.0, 8.0]),
+        height_m=np.array(8.0),
+    )
+    H = np.array([[12 / 1920, 0, -6], [0, -20 / 1080, 21], [0, 0, 1]], dtype=float)
+    np.savez(dirpath / "homography.npz", H=H)
+    rails = {
+        "rails": [
+            {"p0": [0.0, 0.0], "p1": [0.0, 200.0]},
+            {"p0": [1.435, 0.0], "p1": [1.435, 200.0]},
+        ]
+    }
+    (dirpath / "rails.yaml").write_text(yaml.safe_dump(rails), encoding="utf-8")
+    (dirpath / "meta.yaml").write_text(
+        yaml.safe_dump({"undistorted": True, "width": 1920, "height": 1080}),
+        encoding="utf-8",
+    )
+
+
+def test_invalid_calib_skips_undistort():
+    frame = np.zeros((4, 4, 3), dtype=np.uint8)
+    out = undistort_bgr(frame, InvalidCalibView("missing"))
+    assert out is frame
+
+
+def test_undistort_caches_maps(tmp_path: Path):
+    import pytest
+
+    pytest.importorskip("cv2")
+    clear_undistort_maps()
+    calib_dir = tmp_path / "cam"
+    _write_sample(calib_dir)
+    view = FileCalibView(calib_dir)
+    frame = np.random.randint(0, 255, (32, 48, 3), dtype=np.uint8)
+    first = undistort_bgr(frame, view)
+    assert undistort_map_cache_size() == 1
+    second = undistort_bgr(frame, view)
+    assert undistort_map_cache_size() == 1
+    assert first.shape == frame.shape
+    assert np.array_equal(first, second)
+    clear_undistort_maps()
+    assert undistort_map_cache_size() == 0

@@ -12,7 +12,7 @@ modules:
   - path: core/ingest
     role: 接入
     owner: 框架团队
-    purpose: 本机 MediaMTX RTSP 拉流、去畸变、共享内存最新帧
+    purpose: 本机 MediaMTX RTSP 拉流、缓存 remap 去畸变、共享内存最新帧
     forbidden: 跑模型、读业务阈值
 
   - path: core/calib
@@ -24,7 +24,7 @@ modules:
   - path: core/runtime
     role: 调度
     owner: 框架团队
-    purpose: 加载插件、DAG 流水线进程、过期丢帧
+    purpose: 加载插件、DAG 流水线进程、过期丢帧、可选耗时日志
     forbidden: 写死某个模型类名（必须走配置）
 
   - path: core/track

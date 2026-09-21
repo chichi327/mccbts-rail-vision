@@ -117,7 +117,7 @@
 |------|------|------|
 | RTSP 收流 + 缓冲 | 40ms | FFmpeg `nobuffer` / `low_delay` / 小 `probesize`；禁止累积队列 |
 | NVDEC + 颜色转换 | 25ms | 硬解到 GPU，尽量零拷贝 |
-| 去畸变 | 10ms | 框架统一做，GPU remap |
+| 去畸变 | 10ms | 启动时算 remap 表，每帧 CPU `cv2.remap`；GPU remap 仍待 |
 | 检测（人车或障碍物） | 80ms | TensorRT / 量化优先；1080p 可 ROI |
 | 跟踪 + 量测（距离或高度） | 20ms | 几何计算为主；高度若是小网络也必须吃检测框，禁止再跑一遍检测 |
 | 事件判定 | 5ms | 内存态，无磁盘 |
@@ -128,7 +128,7 @@
 配套硬规则：
 
 1. **只处理最新帧。** 环形缓冲深度 = 1～2。解码快于推理时丢旧帧，绝不让队列把延迟堆上去。
-2. **带采集时间戳。** 推理开始前若 `now - capture_ts > 200ms`，该帧直接丢，记过期计数。
+2. **带采集时间戳。** 推理开始前若 `now - capture_ts > 200ms`，该帧直接丢，记过期计数。压测时打开 `system.timing.enabled`（或 `TIMING_ENABLED`）看 `timing` 日志；`e2e_ms` 从 ingest 打戳算起。现场关闭埋点。
 3. **两条流水线并行。** 人车链和障碍物链同时跑；链内检测 → 跟踪 → 量测必须串行（量测依赖框）。
 4. **上报异步。** `await` 后端不能拖住推理循环；300ms 统计点是「请求已发出」（本网时延通常远小于 30ms）。
 5. **MediaMTX 必须透传、小队列。** 禁止用默认大缓冲/转码当算法源；延迟超标先减 `writeQueueSize` 或查 GOP，而不是加长 ingest 队列。
@@ -144,7 +144,7 @@
 │ core/  框架（算法团队只读，不改）                            │
 │  ingest     拉流、硬解、去畸变、共享内存帧总线                 │
 │  calib      加载供应商文件、按 camera_id 提供几何能力         │
-│  runtime    DAG 调度、进程管理、过期丢帧                      │
+│  runtime    DAG 调度、进程管理、过期丢帧、可选耗时日志          │
 │  track      人车 ByteTrack 类跟踪；障碍物短时关联             │
 │  event      阈值判定、去重、事件状态机                        │
 │  report     HTTP 适配现有后端、重试队列                       │
@@ -539,6 +539,9 @@ system:
   gpu_id: 0
   max_e2e_ms: 300
   drop_if_frame_age_ms: 200
+  timing:
+    enabled: false
+    log_every_n: 30
   heartbeat_interval_s: 5
   camera_offline_after_ms: 3000
   frame_slot_depth: 2
