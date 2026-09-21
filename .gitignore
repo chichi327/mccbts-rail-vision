@@ -222,5 +222,4 @@ data/retry_queue/
 data/debug/
 logs/
 dist/
-*.pt
 !**/models/.gitkeep

@@ -40,7 +40,7 @@ pip install -e ".[dev]"
 Copy-Item .env.example .env
 ```
 
-无编辑安装时也可用：`pip install -r requirements.txt`，并把仓库根加入 `PYTHONPATH`。
+无编辑安装时也可用：`pip install -r requirements.txt`，并把仓库根加入 `PYTHONPATH`。`ultralytics` 会带上 PyTorch，体积较大。人车权重放 `algorithms/person_vehicle_detect/models/yolo11n.pt`（不进 git）。
 
 ## 生成示例标定（无供应商文件时）
 

@@ -121,8 +121,8 @@
 
 - [ ] 负责人、交付日期、模型格式（PyTorch / TensorRT）
 - [ ] 已阅读 [plugin-guide.md](../algorithms/plugin-guide.md)
-- [ ] 替换 `algorithms/person_vehicle_detect/` 里的假检测器
-- **我的结论**：
+- [x] 假检测器已换成 YOLO11n，当前只出 `person`（`car`/`truck` 未开）
+- **我的结论**：权重 `algorithms/person_vehicle_detect/models/yolo11n.pt`，走 `PersonVehicleDetector`。
 
 ### E2. 铁轨测距
 

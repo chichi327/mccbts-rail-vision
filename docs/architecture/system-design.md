@@ -503,8 +503,9 @@ algorithms:
     module: algorithms.person_vehicle_detect.detector
     class: PersonVehicleDetector
     config:
-      model_path: algorithms/person_vehicle_detect/models/yolov8n.pt
-      class_names: {0: person, 2: car, 7: truck}
+      model_path: algorithms/person_vehicle_detect/models/yolo11n.pt
+      conf_threshold: 0.5
+      class_names: {0: person}
 
   track_distance:
     enabled: true

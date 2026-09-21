@@ -54,3 +54,7 @@
 - 决策：供应商标定与去畸变说明以 `docs/ops/calibration-vendor.md` 为准，可直接转发。含 OpenCV 复现步骤（`alpha=0`、不裁 ROI、全图 remap）、五文件格式、供应商待办与我方未做项（GPU remap、`calib_stale`、不解析 `rpy_rad`）。
 - 范围：该文档及 `docs/README.md`、根 README、`configuration.md`、system-design 第 7/13 节、follow-up C1。
 - 例外：示例 `config/calib/cam01` 不能当现场精度。
+
+- 决策：人车检测先接 YOLO11n（`yolo11n.pt`）只出 `person`，替换假框以跑通 DAG。`car`/`truck` 稍后加 `class_names`。入口是 `PersonVehicleDetector`，不要用 `person_detect_live.py` 当服务。
+- 范围：`algorithms/person_vehicle_detect/detector.py`、`config/algorithms.yaml`、依赖 `ultralytics`。
+- 例外：权重不进 git；缺 `.pt` 时检测器空结果、不崩进程。障碍物链仍是假框。

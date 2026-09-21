@@ -1,9 +1,7 @@
 # 用海康验证架构已通
 
 目标：证明 **拉流 → 去畸变 → 两条流水线 → 事件** 已经串起来。  
-**不证明**：人/车/障碍物识别准、测距测高准（现在是假检测框 + 示例标定）。
-
-若画面是你的房间/办公室，框却钉在固定位置，这是正常的——插件还没换成真模型。只要图是摄像头拍的、JSON 里有 `object_id` 和距离/高度，架构通路就算过。
+**不证明**：人员识别准、测距测高准（人车链已接 YOLO11n 只检人；障碍物仍是假框；测距用示例标定）。只要图是摄像头拍的、人车链 JSON 里有 `object_id` 和距离，架构通路就算过。
 
 待确认的业务项见 [follow-up-checklist.md](follow-up-checklist.md)。
 
@@ -81,7 +79,7 @@ open preview http://127.0.0.1:8081/preview
 
 健康检查仍是 `http://127.0.0.1:8080/health`。断流 / 流水线挂 / 标定失效看 `issues` 和日志 `HEALTH_FAULT`，不要和「没检出人」混在一起。
 
-假检测器框不会跟着你走。`person_enter_warning` 日志通常只出现一次。画面会一直刷新。
+人进预警距离应看到绿框跟着走，日志出现 `person_enter_warning`（进出区才再打事件）。障碍物假框仍可能钉在固定位置。画面会一直刷新。
 
 关预览：`config/system.yaml` 里 `preview.enabled: false`。
 
@@ -104,7 +102,7 @@ python scripts/test_single_camera.py --camera-id cam01 --pipeline obstacle
 |------|------|
 | 终端打印 `Detection(...)` | 有 `object_id`、人车链有 `distance_to_track_m`、障碍物链有 `height_m` |
 | 打开 `data/debug/last_frame.jpg` | 能认出是**海康画面** |
-| 图上有绿框和字 | 框是骨架假检测器画的，位置可不准 |
+| 图上有绿框和字 | 人车链应套在人身上；障碍物链仍是假框 |
 
 **失败排查**
 
@@ -133,7 +131,7 @@ event camera=cam01 type=person_enter_warning dist=...
 event camera=cam01 type=obstacle_appeared ...
 ```
 
-假检测器每路几乎一直能检出同一个框，所以 **warning / appeared 通常只打一次**（状态不变不再发事件）。这是设计如此，不是卡死。
+人车链有人进出预警区才会反复打事件；障碍物假框位置固定，**appeared 通常只打一次**（状态不变不再发事件）。这是设计如此，不是卡死。
 
 **通过标准**：进程都在、health 正常、日志里有上述两类 event。  
 停掉：macOS / Linux 用 `bash scripts/stop.sh`，Windows 用 `scripts\stop.ps1`。
@@ -142,7 +140,8 @@ event camera=cam01 type=obstacle_appeared ...
 
 ## 5. 这一步**不能**当成验收的
 
-- 框没有套在你身上（假检测器位置固定）
+- 画面里没人时人车链可以没有框（正常）；障碍物假框仍可能钉在固定位置
 - 距离不是拿米尺量轨道的结果（用的是 `config/calib/cam01` 示例单应）
+- 车辆尚未接入（配置只开 `person`）
 
-真模型进来后，预览上的框应跟着人走；再拿现场标定对比测距。
+再拿现场标定对比测距。
